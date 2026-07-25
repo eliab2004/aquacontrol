@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0ea5e9" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="AquaControl" />
+  <title>AquaControl - Purificadora</title>
+  <style>
+    :root{
+      --bg:#f6fbff;
+      --surface:#ffffff;
+      --surface-2:#eef8ff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --border:#dbeafe;
+      --primary:#0ea5e9;
+      --primary-dark:#0284c7;
+      --primary-soft:#e0f2fe;
+      --success:#16a34a;
+      --warning:#f59e0b;
+      --danger:#ef4444;
+      --shadow:0 12px 35px rgba(14,165,233,.13);
+      --radius:22px;
+      --sidebar-w:270px;
+    }
+
+    body.dark{
+      --bg:#07111f;
+      --surface:#0f1c2e;
+      --surface-2:#13243a;
+      --text:#eaf5ff;
+      --muted:#93a9c3;
+      --border:#203652;
+      --primary:#38bdf8;
+      --primary-dark:#0ea5e9;
+      --primary-soft:#14324a;
+      --shadow:0 14px 38px rgba(0,0,0,.34);
+    }
+
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+    button,input,select{font:inherit}
+    button{cursor:pointer}
+
+    .app{min-height:100vh}
+
+    .sidebar{
+      position:fixed;
+      inset:0 auto 0 0;
+      width:var(--sidebar-w);
+      z-index:50;
+      background:var(--surface);
+      border-right:1px solid var(--border);
+      padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom));
+      transition:transform .28s ease;
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+    .sidebar.hidden{transform:translateX(-100%)}
+    .brand{display:flex;align-items:center;gap:12px;padding:6px 8px}
+    .brand-icon{
+      width:48px;height:48px;border-radius:16px;
+      background:linear-gradient(145deg,#7dd3fc,#0ea5e9);
+      display:grid;place-items:center;color:white;font-size:26px;box-shadow:var(--shadow)
+    }
+    .brand h1{font-size:17px;margin:0}
+    .brand p{font-size:12px;color:var(--muted);margin:3px 0 0}
+
+    .nav{display:flex;flex-direction:column;gap:8px}
+    .nav-btn{
+      width:100%;border:0;border-radius:15px;padding:13px 14px;
+      display:flex;align-items:center;gap:12px;
+      background:transparent;color:var(--text);font-weight:700;text-align:left;
+    }
+    .nav-btn span:first-child{font-size:20px;width:25px}
+    .nav-btn.active{background:linear-gradient(135deg,var(--primary),#60a5fa);color:white;box-shadow:0 8px 22px rgba(14,165,233,.24)}
+    .nav-btn:not(.active):active{background:var(--primary-soft)}
+
+    .sidebar-bottom{margin-top:auto;display:grid;gap:9px}
+    .secondary-btn{
+      border:1px solid var(--border);background:var(--surface-2);color:var(--text);
+      border-radius:14px;padding:12px;font-weight:750
+    }
+
+    .overlay{
+      position:fixed;inset:0;background:rgba(2,6,23,.42);z-index:45;
+      opacity:0;pointer-events:none;transition:.25s
+    }
+    .overlay.show{opacity:1;pointer-events:auto}
+
+    .main{min-height:100vh;padding:calc(15px + env(safe-area-inset-top)) 14px calc(90px + env(safe-area-inset-bottom));}
+    .topbar{
+      max-width:900px;margin:0 auto 16px;
+      display:flex;align-items:center;justify-content:space-between;gap:12px
+    }
+    .icon-btn{
+      width:44px;height:44px;border:1px solid var(--border);border-radius:14px;
+      background:var(--surface);color:var(--text);display:grid;place-items:center;
+      box-shadow:0 5px 16px rgba(15,23,42,.06);font-size:20px
+    }
+    .top-title h2{margin:0;font-size:19px}
+    .top-title p{margin:3px 0 0;color:var(--muted);font-size:12px}
+    .page{display:none;max-width:900px;margin:0 auto}
+    .page.active{display:block}
+
+    .hero{
+      background:linear-gradient(145deg,var(--surface),var(--surface-2));
+      border:1px solid var(--border);border-radius:28px;padding:22px 18px;
+      box-shadow:var(--shadow);text-align:center;position:relative;overflow:hidden;
+    }
+    .hero::before,.hero::after{
+      content:"";position:absolute;border-radius:999px;background:rgba(56,189,248,.12)
+    }
+    .hero::before{width:180px;height:180px;top:-90px;right:-70px}
+    .hero::after{width:120px;height:120px;bottom:-70px;left:-50px}
+    .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.16em;color:var(--primary-dark);font-weight:900}
+    .today-count{font-size:52px;font-weight:900;line-height:1;margin:10px 0 5px}
+    .today-label{color:var(--muted);font-size:14px}
+
+    .bottle-button{
+      width:min(240px,66vw);aspect-ratio:1;border:0;border-radius:50%;margin:22px auto 12px;
+      background:radial-gradient(circle at 36% 25%,#e0f2fe 0 8%,#7dd3fc 30%,#0ea5e9 67%,#0284c7 100%);
+      box-shadow:0 18px 40px rgba(14,165,233,.38), inset 0 5px 20px rgba(255,255,255,.35);
+      display:grid;place-items:center;color:white;position:relative;transition:transform .12s ease;
+    }
+    .bottle-button:active{transform:scale(.95)}
+    .bottle-button::after{
+      content:"";position:absolute;inset:12px;border:2px solid rgba(255,255,255,.42);border-radius:50%
+    }
+    .bottle-icon{font-size:86px;filter:drop-shadow(0 8px 12px rgba(2,132,199,.25));line-height:1}
+    .tap-text{font-size:13px;color:var(--muted);font-weight:700}
+    .undo-btn{
+      border:0;background:transparent;color:var(--primary-dark);font-weight:800;padding:10px 14px
+    }
+
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+    .stat{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:14px 8px;text-align:center}
+    .stat strong{display:block;font-size:21px}
+    .stat span{font-size:11px;color:var(--muted)}
+
+    .section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 2px 14px}
+    .section-head h3{margin:0;font-size:20px}
+    .section-head p{margin:3px 0 0;color:var(--muted);font-size:12px}
+
+    .card{
+      background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+      padding:16px;box-shadow:0 8px 28px rgba(15,23,42,.05);margin-bottom:14px
+    }
+    .history-list{display:grid;gap:10px}
+    .history-item{
+      display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:var(--surface-2)
+    }
+    .history-num{
+      min-width:43px;height:43px;border-radius:14px;background:linear-gradient(145deg,var(--primary),#60a5fa);
+      color:white;display:grid;place-items:center;font-weight:900
+    }
+    .history-info{min-width:0;flex:1}
+    .history-info strong{display:block;font-size:14px}
+    .history-info span{color:var(--muted);font-size:12px}
+    .delete-mini{border:0;background:transparent;color:var(--danger);font-size:18px;padding:8px}
+
+    .filter-card{padding:17px;border:1px solid var(--border);border-radius:19px;background:var(--surface);margin-bottom:12px}
+    .filter-top{display:flex;gap:12px;align-items:flex-start}
+    .filter-icon{
+      width:48px;height:48px;border-radius:15px;background:var(--primary-soft);color:var(--primary-dark);
+      display:grid;place-items:center;font-size:22px;flex:0 0 auto
+    }
+    .filter-info{flex:1;min-width:0}
+    .filter-info h4{margin:1px 0 4px}
+    .filter-info p{margin:0;color:var(--muted);font-size:12px}
+    .badge{font-size:11px;font-weight:900;padding:6px 9px;border-radius:999px;white-space:nowrap}
+    .badge.ok{background:#dcfce7;color:#15803d}
+    .badge.warn{background:#fef3c7;color:#b45309}
+    .badge.danger{background:#fee2e2;color:#b91c1c}
+    body.dark .badge.ok{background:#123923;color:#86efac}
+    body.dark .badge.warn{background:#3b2c0d;color:#fcd34d}
+    body.dark .badge.danger{background:#431b22;color:#fca5a5}
+
+    .progress{height:10px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin:14px 0 8px}
+    .progress > div{height:100%;border-radius:99px;background:linear-gradient(90deg,#38bdf8,#0284c7);transition:width .3s}
+    .filter-meta{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:var(--muted)}
+    .filter-actions{display:flex;gap:8px;margin-top:14px}
+    .btn{
+      border:0;border-radius:13px;padding:11px 13px;font-weight:850;background:var(--primary);color:white
+    }
+    .btn.soft{background:var(--primary-soft);color:var(--primary-dark)}
+    .btn.danger{background:#fee2e2;color:#b91c1c}
+    .btn.full{width:100%}
+
+    .form-grid{display:grid;gap:12px}
+    label{display:grid;gap:6px;font-size:12px;font-weight:800;color:var(--muted)}
+    input,select{
+      width:100%;border:1px solid var(--border);border-radius:13px;background:var(--surface-2);
+      color:var(--text);padding:12px;outline:none
+    }
+    input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(14,165,233,.12)}
+
+    .empty{text-align:center;padding:30px 14px;color:var(--muted)}
+    .empty .emoji{font-size:40px;margin-bottom:8px}
+
+    .toast{
+      position:fixed;z-index:100;left:50%;bottom:calc(25px + env(safe-area-inset-bottom));
+      transform:translate(-50%,30px);opacity:0;pointer-events:none;
+      background:#0f172a;color:white;border-radius:15px;padding:12px 16px;font-weight:800;font-size:13px;
+      box-shadow:0 12px 30px rgba(0,0,0,.25);transition:.25s;max-width:88%;text-align:center
+    }
+    .toast.show{opacity:1;transform:translate(-50%,0)}
+
+    .modal{
+      position:fixed;inset:0;z-index:90;background:rgba(2,6,23,.58);display:none;
+      align-items:flex-end;justify-content:center;padding:16px
+    }
+    .modal.show{display:flex}
+    .modal-box{
+      width:min(100%,520px);background:var(--surface);border-radius:25px 25px 18px 18px;padding:20px;
+      max-height:90vh;overflow:auto
+    }
+    .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+    .modal-head h3{margin:0}
+    .close-btn{border:0;background:var(--surface-2);color:var(--text);width:38px;height:38px;border-radius:12px}
+
+    .bottom-nav{
+      position:fixed;z-index:40;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));
+      background:rgba(255,255,255,.88);backdrop-filter:blur(16px);border:1px solid var(--border);
+      border-radius:20px;padding:7px;display:grid;grid-template-columns:repeat(3,1fr);box-shadow:var(--shadow)
+    }
+    body.dark .bottom-nav{background:rgba(15,28,46,.9)}
+    .bottom-btn{border:0;background:transparent;color:var(--muted);border-radius:14px;padding:8px 4px;font-size:10px;font-weight:800}
+    .bottom-btn span{display:block;font-size:20px;margin-bottom:2px}
+    .bottom-btn.active{background:var(--primary-soft);color:var(--primary-dark)}
+
+    @media(min-width:760px){
+      .main{padding-left:calc(var(--sidebar-w) + 24px);padding-bottom:28px;transition:padding-left .28s}
+      body.sidebar-collapsed .main{padding-left:24px}
+      .sidebar{transform:none}
+      .sidebar.hidden{transform:translateX(-100%)}
+      .overlay,.bottom-nav{display:none}
+      .modal{align-items:center}
+      .modal-box{border-radius:24px}
+      .hero{padding:30px}
+      .form-grid.two{grid-template-columns:1fr 1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar hidden" id="sidebar">
+      <div class="brand">
+        <div class="brand-icon">💧</div>
+        <div>
+          <h1>AquaControl</h1>
+          <p>Control de purificadora</p>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-btn active" data-page="home"><span>🏠</span>Panel principal</button>
+        <button class="nav-btn" data-page="history"><span>📋</span>Historial de ventas</button>
+        <button class="nav-btn" data-page="filters"><span>🧰</span>Control de filtros</button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <button class="secondary-btn" id="notificationBtn">🔔 Activar notificaciones</button>
+        <button class="secondary-btn" id="themeBtn">🌙 Modo oscuro</button>
+        <button class="secondary-btn" id="exportBtn">⬇️ Exportar respaldo</button>
+        <button class="secondary-btn" id="importBtn">⬆️ Importar respaldo</button>
+        <input type="file" id="importFile" accept=".json" hidden />
+      </div>
+    </aside>
+
+    <div class="overlay" id="overlay"></div>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-btn" id="menuBtn" aria-label="Abrir menú">☰</button>
+        <div class="top-title">
+          <h2 id="pageTitle">Panel principal</h2>
+          <p id="currentDate"></p>
+        </div>
+        <button class="icon-btn" id="quickThemeBtn" aria-label="Cambiar tema">🌙</button>
+      </header>
+
+      <section class="page active" id="page-home">
+        <div class="hero">
+          <div class="eyebrow">Ventas de hoy</div>
+          <div class="today-count" id="todayCount">0</div>
+          <div class="today-label">garrafones registrados</div>
+
+          <button class="bottle-button" id="saleBtn" aria-label="Registrar garrafón vendido">
+            <div class="bottle-icon">🫙</div>
+          </button>
+          <div class="tap-text">Presiona para registrar una venta</div>
+          <button class="undo-btn" id="undoBtn">↶ Deshacer última venta</button>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><strong id="weekCount">0</strong><span>Esta semana</span></div>
+          <div class="stat"><strong id="monthCount">0</strong><span>Este mes</span></div>
+          <div class="stat"><strong id="totalCount">0</strong><span>Total histórico</span></div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <div class="section-head">
+            <div>
+              <h3 style="font-size:16px">Estado de filtros</h3>
+              <p>Resumen conectado con cada venta</p>
+            </div>
+          </div>
+          <div id="filterSummary"></div>
+        </div>
+      </section>
+
+      <section class="page" id="page-history">
+        <div class="section-head">
+          <div>
+            <h3>Historial</h3>
+            <p>Cada venta con fecha y hora</p>
+          </div>
+          <button class="btn soft" id="clearHistoryBtn">Limpiar</button>
+        </div>
+
+        <div class="card">
+          <label>
+            Filtrar por fecha
+            <input type="date" id="historyDate" />
+          </label>
+        </div>
+
+        <div class="card">
+          <div id="historyList" class="history-list"></div>
+        </div>
+      </section>
+
+      <section class="page" id="page-filters">
+        <div class="section-head">
+          <div>
+            <h3>Filtros</h3>
+            <p>Alertas por usos o por tiempo</p>
+          </div>
+          <button class="btn" id="addFilterBtn">+ Agregar</button>
+        </div>
+        <div id="filterList"></div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="bottom-btn active" data-page="home"><span>🏠</span>Inicio</button>
+      <button class="bottom-btn" data-page="history"><span>📋</span>Historial</button>
+      <button class="bottom-btn" data-page="filters"><span>🧰</span>Filtros</button>
+    </nav>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="modal" id="filterModal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3 id="modalTitle">Agregar filtro</h3>
+        <button class="close-btn" id="closeModal">✕</button>
+      </div>
+      <form id="filterForm" class="form-grid">
+        <input type="hidden" id="filterId" />
+        <label>
+          Nombre del filtro
+          <input id="filterName" required placeholder="Ej. Filtro de carbón activado" maxlength="60" />
+        </label>
+        <div class="form-grid two">
+          <label>
+            Cambiar después de cuántos usos
+            <input id="filterMaxUses" type="number" min="1" value="1000" required />
+          </label>
+          <label>
+            Cambiar después de cuántos días
+            <input id="filterMaxDays" type="number" min="1" value="90" required />
+          </label>
+        </div>
+        <label>
+          Fecha de última instalación o cambio
+          <input id="filterStartDate" type="date" required />
+        </label>
+        <button class="btn full" type="submit">Guardar filtro</button>
+      </form>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const STORAGE_KEY = 'aquacontrol_data_v1';
+  const THEME_KEY = 'aquacontrol_theme';
+
+  const defaultData = {
+    sales: [],
+    filters: [
+      { id: cryptoId(), name: 'Filtro de sedimentos', maxUses: 1000, maxDays: 90, startDate: todayISO(), baseSales: 0 },
+      { id: cryptoId(), name: 'Filtro de carbón activado', maxUses: 1800, maxDays: 180, startDate: todayISO(), baseSales: 0 },
+      { id: cryptoId(), name: 'Membrana de ósmosis', maxUses: 5000, maxDays: 365, startDate: todayISO(), baseSales: 0 }
+    ]
+  };
+
+  let data = loadData();
+  let currentPage = 'home';
+
+  const $ = id => document.getElementById(id);
+  const sidebar = $('sidebar');
+  const overlay = $('overlay');
+  const toast = $('toast');
+
+  function cryptoId(){
+    return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
+  }
+
+  function todayISO(){
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0,10);
+  }
+
+  function loadData(){
+    try{
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if(saved && Array.isArray(saved.sales) && Array.isArray(saved.filters)) return saved;
+    }catch(e){}
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultData));
+    return JSON.parse(JSON.stringify(defaultData));
+  }
+
+  function saveData(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  function formatDateTime(timestamp){
+    return new Intl.DateTimeFormat('es-GT', {
+      day:'2-digit', month:'short', year:'numeric',
+      hour:'2-digit', minute:'2-digit'
+    }).format(new Date(timestamp));
+  }
+
+  function dateOnly(timestamp){
+    const d = new Date(timestamp);
+    const local = new Date(d.getTime() - d.getTimezoneOffset()*60000);
+    return local.toISOString().slice(0,10);
+  }
+
+  function showToast(message){
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(showToast.timer);
+    showToast.timer = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  function notify(title, body){
+    showToast(body);
+    if('Notification' in window && Notification.permission === 'granted'){
+      try{ new Notification(title, { body, icon:'' }); }catch(e){}
+    }
+  }
+
+  function localDayStart(date = new Date()){
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  function render(){
+    renderStats();
+    renderHistory();
+    renderFilters();
+    renderFilterSummary();
+    updateThemeButtons();
+  }
+
+  function renderStats(){
+    const now = new Date();
+    const todayStart = localDayStart(now);
+    const day = now.getDay() || 7;
+    const weekStart = new Date(todayStart);
+    weekStart.setDate(todayStart.getDate() - day + 1);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    $('todayCount').textContent = data.sales.filter(s => new Date(s.time) >= todayStart).length;
+    $('weekCount').textContent = data.sales.filter(s => new Date(s.time) >= weekStart).length;
+    $('monthCount').textContent = data.sales.filter(s => new Date(s.time) >= monthStart).length;
+    $('totalCount').textContent = data.sales.length;
+  }
+
+  function renderHistory(){
+    const selected = $('historyDate').value;
+    const sales = [...data.sales]
+      .filter(s => !selected || dateOnly(s.time) === selected)
+      .sort((a,b) => b.time - a.time);
+
+    if(!sales.length){
+      $('historyList').innerHTML = '<div class="empty"><div class="emoji">📭</div>No hay ventas registradas para esta fecha.</div>';
+      return;
+    }
+
+    $('historyList').innerHTML = sales.map((s, i) => `
+      <div class="history-item">
+        <div class="history-num">${sales.length - i}</div>
+        <div class="history-info">
+          <strong>Garrafón vendido</strong>
+          <span>${formatDateTime(s.time)}</span>
+        </div>
+        <button class="delete-mini" data-delete-sale="${s.id}" aria-label="Eliminar">🗑️</button>
+      </div>
+    `).join('');
+  }
+
+  function filterStatus(filter){
+    const uses = Math.max(0, data.sales.length - Number(filter.baseSales || 0));
+    const start = new Date(filter.startDate + 'T00:00:00');
+    const days = Math.max(0, Math.floor((localDayStart() - start) / 86400000));
+    const usePct = (uses / filter.maxUses) * 100;
+    const dayPct = (days / filter.maxDays) * 100;
+    const pct = Math.max(usePct, dayPct);
+    let level = 'ok', text = 'En buen estado';
+    if(pct >= 100){ level = 'danger'; text = 'Cambiar ahora'; }
+    else if(pct >= 80){ level = 'warn'; text = 'Próximo a cambio'; }
+    return { uses, days, pct: Math.min(100,pct), level, text, remainingUses: Math.max(0, filter.maxUses - uses), remainingDays: Math.max(0, filter.maxDays - days) };
+  }
+
+  function renderFilters(){
+    if(!data.filters.length){
+      $('filterList').innerHTML = '<div class="card empty"><div class="emoji">🧰</div>No hay filtros configurados.</div>';
+      return;
+    }
+
+    $('filterList').innerHTML = data.filters.map(f => {
+      const st = filterStatus(f);
+      return `
+        <div class="filter-card">
+          <div class="filter-top">
+            <div class="filter-icon">🧪</div>
+            <div class="filter-info">
+              <h4>${escapeHTML(f.name)}</h4>
+              <p>Instalado: ${new Intl.DateTimeFormat('es-GT',{dateStyle:'medium'}).format(new Date(f.startDate+'T00:00:00'))}</p>
+            </div>
+            <span class="badge ${st.level}">${st.text}</span>
+          </div>
+          <div class="progress"><div style="width:${st.pct}%"></div></div>
+          <div class="filter-meta">
+            <span>${st.uses} / ${f.maxUses} usos</span>
+            <span>${st.days} / ${f.maxDays} días</span>
+          </div>
+          <div class="filter-actions">
+            <button class="btn soft" data-edit-filter="${f.id}">Editar</button>
+            <button class="btn" data-reset-filter="${f.id}">Marcar cambiado</button>
+            <button class="btn danger" data-delete-filter="${f.id}">Eliminar</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderFilterSummary(){
+    if(!data.filters.length){
+      $('filterSummary').innerHTML = '<div class="empty">No hay filtros configurados.</div>';
+      return;
+    }
+    $('filterSummary').innerHTML = data.filters.map(f => {
+      const st = filterStatus(f);
+      return `
+        <div class="history-item" style="margin-bottom:8px">
+          <div class="filter-icon" style="width:42px;height:42px">🧪</div>
+          <div class="history-info">
+            <strong>${escapeHTML(f.name)}</strong>
+            <span>${st.remainingUses} usos o ${st.remainingDays} días restantes</span>
+          </div>
+          <span class="badge ${st.level}">${Math.round(st.pct)}%</span>
+        </div>`;
+    }).join('');
+  }
+
+  function escapeHTML(value){
+    return String(value).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  }
+
+  function checkFilterAlerts(){
+    data.filters.forEach(f => {
+      const st = filterStatus(f);
+      if(st.level === 'danger'){
+        notify('Cambio de filtro requerido', `${f.name}: ya llegó a su límite de uso o tiempo.`);
+      } else if(st.level === 'warn' && (st.uses === Math.ceil(f.maxUses*.8) || st.days === Math.ceil(f.maxDays*.8))){
+        notify('Filtro próximo a cambio', `${f.name}: ha alcanzado aproximadamente el 80% de su vida útil.`);
+      }
+    });
+  }
+
+  function registerSale(){
+    data.sales.push({ id: cryptoId(), time: Date.now() });
+    saveData();
+    render();
+    if(navigator.vibrate) navigator.vibrate(40);
+    showToast('Garrafón registrado correctamente');
+    checkFilterAlerts();
+  }
+
+  function undoSale(){
+    if(!data.sales.length){ showToast('No hay ventas para deshacer'); return; }
+    const latest = [...data.sales].sort((a,b) => b.time-a.time)[0];
+    data.sales = data.sales.filter(s => s.id !== latest.id);
+    saveData(); render(); showToast('Última venta eliminada');
+  }
+
+  function navigate(page){
+    currentPage = page;
+    document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-'+page));
+    document.querySelectorAll('[data-page]').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+    $('pageTitle').textContent = ({home:'Panel principal',history:'Historial de ventas',filters:'Control de filtros'})[page];
+    closeSidebar();
+  }
+
+  function openSidebar(){
+    sidebar.classList.remove('hidden');
+    if(window.innerWidth < 760) overlay.classList.add('show');
+    else document.body.classList.remove('sidebar-collapsed');
+  }
+
+  function closeSidebar(){
+    sidebar.classList.add('hidden');
+    overlay.classList.remove('show');
+    if(window.innerWidth >= 760) document.body.classList.add('sidebar-collapsed');
+  }
+
+  function applyTheme(theme){
+    document.body.classList.toggle('dark', theme === 'dark');
+    localStorage.setItem(THEME_KEY, theme);
+    updateThemeButtons();
+  }
+
+  function updateThemeButtons(){
+    const dark = document.body.classList.contains('dark');
+    $('themeBtn').textContent = dark ? '☀️ Modo claro' : '🌙 Modo oscuro';
+    $('quickThemeBtn').textContent = dark ? '☀️' : '🌙';
+  }
+
+  function toggleTheme(){
+    applyTheme(document.body.classList.contains('dark') ? 'light' : 'dark');
+  }
+
+  function openFilterModal(filter=null){
+    $('modalTitle').textContent = filter ? 'Editar filtro' : 'Agregar filtro';
+    $('filterId').value = filter?.id || '';
+    $('filterName').value = filter?.name || '';
+    $('filterMaxUses').value = filter?.maxUses || 1000;
+    $('filterMaxDays').value = filter?.maxDays || 90;
+    $('filterStartDate').value = filter?.startDate || todayISO();
+    $('filterModal').classList.add('show');
+  }
+
+  function closeFilterModal(){
+    $('filterModal').classList.remove('show');
+  }
+
+  $('saleBtn').addEventListener('click', registerSale);
+  $('undoBtn').addEventListener('click', undoSale);
+  $('menuBtn').addEventListener('click', () => sidebar.classList.contains('hidden') ? openSidebar() : closeSidebar());
+  overlay.addEventListener('click', closeSidebar);
+  $('themeBtn').addEventListener('click', toggleTheme);
+  $('quickThemeBtn').addEventListener('click', toggleTheme);
+  document.querySelectorAll('[data-page]').forEach(btn => btn.addEventListener('click', () => navigate(btn.dataset.page)));
+  $('historyDate').addEventListener('change', renderHistory);
+  $('addFilterBtn').addEventListener('click', () => openFilterModal());
+  $('closeModal').addEventListener('click', closeFilterModal);
+  $('filterModal').addEventListener('click', e => { if(e.target === $('filterModal')) closeFilterModal(); });
+
+  $('historyList').addEventListener('click', e => {
+    const id = e.target.closest('[data-delete-sale]')?.dataset.deleteSale;
+    if(!id) return;
+    data.sales = data.sales.filter(s => s.id !== id);
+    saveData(); render(); showToast('Registro eliminado');
+  });
+
+  $('filterList').addEventListener('click', e => {
+    const editId = e.target.closest('[data-edit-filter]')?.dataset.editFilter;
+    const resetId = e.target.closest('[data-reset-filter]')?.dataset.resetFilter;
+    const deleteId = e.target.closest('[data-delete-filter]')?.dataset.deleteFilter;
+
+    if(editId){
+      openFilterModal(data.filters.find(f => f.id === editId));
+    }
+    if(resetId){
+      const f = data.filters.find(f => f.id === resetId);
+      if(f && confirm(`¿Confirmas que cambiaste "${f.name}"?`)){
+        f.startDate = todayISO();
+        f.baseSales = data.sales.length;
+        saveData(); render(); showToast('Filtro reiniciado');
+      }
+    }
+    if(deleteId && confirm('¿Eliminar este filtro?')){
+      data.filters = data.filters.filter(f => f.id !== deleteId);
+      saveData(); render(); showToast('Filtro eliminado');
+    }
+  });
+
+  $('filterForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const id = $('filterId').value;
+    const existing = data.filters.find(f => f.id === id);
+    const item = {
+      id: id || cryptoId(),
+      name: $('filterName').value.trim(),
+      maxUses: Number($('filterMaxUses').value),
+      maxDays: Number($('filterMaxDays').value),
+      startDate: $('filterStartDate').value,
+      baseSales: existing?.baseSales ?? data.sales.length
+    };
+    if(existing) Object.assign(existing,item);
+    else data.filters.push(item);
+    saveData(); render(); closeFilterModal(); showToast('Filtro guardado');
+  });
+
+  $('clearHistoryBtn').addEventListener('click', () => {
+    if(confirm('¿Eliminar todo el historial de ventas? Esta acción no se puede deshacer.')){
+      data.sales = [];
+      data.filters.forEach(f => f.baseSales = 0);
+      saveData(); render(); showToast('Historial eliminado');
+    }
+  });
+
+  $('notificationBtn').addEventListener('click', async () => {
+    if(!('Notification' in window)){
+      showToast('Este navegador no admite notificaciones');
+      return;
+    }
+    const result = await Notification.requestPermission();
+    showToast(result === 'granted' ? 'Notificaciones activadas' : 'Permiso de notificaciones no concedido');
+  });
+
+  $('exportBtn').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `aquacontrol-respaldo-${todayISO()}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url),500);
+    showToast('Respaldo exportado');
+  });
+
+  $('importBtn').addEventListener('click', () => $('importFile').click());
+  $('importFile').addEventListener('change', async e => {
+    const file = e.target.files[0];
+    if(!file) return;
+    try{
+      const parsed = JSON.parse(await file.text());
+      if(!Array.isArray(parsed.sales) || !Array.isArray(parsed.filters)) throw new Error();
+      data = parsed; saveData(); render(); showToast('Respaldo importado');
+    }catch(err){ alert('El archivo no es un respaldo válido de AquaControl.'); }
+    e.target.value = '';
+  });
+
+  $('currentDate').textContent = new Intl.DateTimeFormat('es-GT', {weekday:'long',day:'numeric',month:'long'}).format(new Date());
+  $('historyDate').value = todayISO();
+  applyTheme(localStorage.getItem(THEME_KEY) || 'light');
+  if(window.innerWidth >= 760) openSidebar();
+  render();
+
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js').catch(() => {});
+    });
+  }
+})();
+</script>
+</body>
+</html>
