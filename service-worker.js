@@ -1,5 +1,5 @@
 // Incrementar este nombre publica una nueva versión del contenido sin borrar datos locales.
-const CACHE_NAME = 'aquacontrol-cache-v2';
+const CACHE_NAME = 'aquacontrol-cache-v3';
 const APP_SHELL = [
   './index.html',
   './manifest.json',
