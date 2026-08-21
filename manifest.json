@@ -1,7 +1,7 @@
 {
   "name": "AquaControl - Purificadora",
   "short_name": "AquaControl",
-  "description": "Control de ventas, órdenes, clientes, reportes, filtros, inventario y caja para purificadora de agua",
+  "description": "Control de ventas, órdenes, clientes, contestadora IA, reportes, filtros, inventario y caja para purificadora de agua",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
