@@ -1,6 +1,5 @@
-// Cambia este número cada vez que subas una actualización del contenido
-// (esto NO borra los datos guardados; solo controla la caché de archivos).
-const CACHE_NAME = 'aquacontrol-cache-v1';
+// Incrementar este nombre publica una nueva versión del contenido sin borrar datos locales.
+const CACHE_NAME = 'aquacontrol-cache-v5';
 const APP_SHELL = [
   './index.html',
   './manifest.json',
@@ -9,22 +8,17 @@ const APP_SHELL = [
 ];
 
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL))
-  );
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));
   self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
+    caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
   );
   self.clients.claim();
 });
 
-// Estrategia: intenta red primero (para traer actualizaciones), si falla usa caché (modo offline)
 self.addEventListener('fetch', event => {
   event.respondWith(
     fetch(event.request)

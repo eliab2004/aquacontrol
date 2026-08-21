@@ -3,769 +3,412 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0ea5e9" />
+  <meta name="theme-color" content="#0891b2" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon-192.png" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="AquaControl" />
   <title>AquaControl - Purificadora</title>
   <style>
     :root{
-      --bg:#f6fbff;
-      --surface:#ffffff;
-      --surface-2:#eef8ff;
-      --text:#0f172a;
-      --muted:#64748b;
-      --border:#dbeafe;
-      --primary:#0ea5e9;
-      --primary-dark:#0284c7;
-      --primary-soft:#e0f2fe;
-      --success:#16a34a;
-      --warning:#f59e0b;
-      --danger:#ef4444;
-      --shadow:0 12px 35px rgba(14,165,233,.13);
-      --radius:22px;
-      --sidebar-w:270px;
+      --bg:#f7fafc;--surface:#fff;--surface-2:#f3f7fa;--text:#102033;--muted:#68778a;
+      --border:#dce4ea;--primary:#0891b2;--primary-dark:#0e7490;--primary-soft:#e3f6fa;
+      --success:#15803d;--success-soft:#e9f8ee;--warning:#d97706;--warning-soft:#fff4df;
+      --danger:#dc2626;--danger-soft:#feecec;--blue:#2563eb;--blue-soft:#eaf2ff;
+      --shadow:0 10px 30px rgba(15,35,55,.07);--radius:18px;--sidebar-w:270px;
     }
-
     body.dark{
-      --bg:#07111f;
-      --surface:#0f1c2e;
-      --surface-2:#13243a;
-      --text:#eaf5ff;
-      --muted:#93a9c3;
-      --border:#203652;
-      --primary:#38bdf8;
-      --primary-dark:#0ea5e9;
-      --primary-soft:#14324a;
-      --shadow:0 14px 38px rgba(0,0,0,.34);
+      --bg:#07131f;--surface:#102030;--surface-2:#15283a;--text:#edf6fb;--muted:#9aafc2;
+      --border:#294057;--primary:#22b8cf;--primary-dark:#67e8f9;--primary-soft:#143947;
+      --success:#4ade80;--success-soft:#153b28;--warning:#fbbf24;--warning-soft:#422f10;
+      --danger:#f87171;--danger-soft:#451f26;--blue:#60a5fa;--blue-soft:#172f50;
+      --shadow:0 14px 36px rgba(0,0,0,.25);
     }
-
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
-    button,input,select{font:inherit}
-    button{cursor:pointer}
-
-    .app{min-height:100vh}
-
-    .sidebar{
-      position:fixed;
-      inset:0 auto 0 0;
-      width:var(--sidebar-w);
-      z-index:50;
-      background:var(--surface);
-      border-right:1px solid var(--border);
-      padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom));
-      transition:transform .28s ease;
-      display:flex;
-      flex-direction:column;
-      gap:18px;
-    }
+    html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+    button,input,select{font:inherit}button{cursor:pointer}.app{min-height:100vh}
+    .sidebar{position:fixed;inset:0 auto 0 0;width:var(--sidebar-w);z-index:50;background:var(--surface);border-right:1px solid var(--border);padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom));transition:transform .25s ease;display:flex;flex-direction:column;gap:18px}
     .sidebar.hidden{transform:translateX(-100%)}
-    .brand{display:flex;align-items:center;gap:12px;padding:6px 8px}
-    .brand-icon{
-      width:48px;height:48px;border-radius:16px;
-      background:linear-gradient(145deg,#7dd3fc,#0ea5e9);
-      display:grid;place-items:center;color:white;font-size:26px;box-shadow:var(--shadow)
-    }
-    .brand h1{font-size:17px;margin:0}
-    .brand p{font-size:12px;color:var(--muted);margin:3px 0 0}
-
-    .nav{display:flex;flex-direction:column;gap:8px}
-    .nav-btn{
-      width:100%;border:0;border-radius:15px;padding:13px 14px;
-      display:flex;align-items:center;gap:12px;
-      background:transparent;color:var(--text);font-weight:700;text-align:left;
-    }
-    .nav-btn span:first-child{font-size:20px;width:25px}
-    .nav-btn.active{background:linear-gradient(135deg,var(--primary),#60a5fa);color:white;box-shadow:0 8px 22px rgba(14,165,233,.24)}
-    .nav-btn:not(.active):active{background:var(--primary-soft)}
-
-    .sidebar-bottom{margin-top:auto;display:grid;gap:9px}
-    .secondary-btn{
-      border:1px solid var(--border);background:var(--surface-2);color:var(--text);
-      border-radius:14px;padding:12px;font-weight:750
-    }
-
-    .overlay{
-      position:fixed;inset:0;background:rgba(2,6,23,.42);z-index:45;
-      opacity:0;pointer-events:none;transition:.25s
-    }
-    .overlay.show{opacity:1;pointer-events:auto}
-
-    .main{min-height:100vh;padding:calc(15px + env(safe-area-inset-top)) 14px calc(90px + env(safe-area-inset-bottom));}
-    .topbar{
-      max-width:900px;margin:0 auto 16px;
-      display:flex;align-items:center;justify-content:space-between;gap:12px
-    }
-    .icon-btn{
-      width:44px;height:44px;border:1px solid var(--border);border-radius:14px;
-      background:var(--surface);color:var(--text);display:grid;place-items:center;
-      box-shadow:0 5px 16px rgba(15,23,42,.06);font-size:20px
-    }
-    .top-title h2{margin:0;font-size:19px}
-    .top-title p{margin:3px 0 0;color:var(--muted);font-size:12px}
-    .page{display:none;max-width:900px;margin:0 auto}
-    .page.active{display:block}
-
-    .hero{
-      background:linear-gradient(145deg,var(--surface),var(--surface-2));
-      border:1px solid var(--border);border-radius:28px;padding:22px 18px;
-      box-shadow:var(--shadow);text-align:center;position:relative;overflow:hidden;
-    }
-    .hero::before,.hero::after{
-      content:"";position:absolute;border-radius:999px;background:rgba(56,189,248,.12)
-    }
-    .hero::before{width:180px;height:180px;top:-90px;right:-70px}
-    .hero::after{width:120px;height:120px;bottom:-70px;left:-50px}
-    .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.16em;color:var(--primary-dark);font-weight:900}
-    .today-count{font-size:52px;font-weight:900;line-height:1;margin:10px 0 5px}
-    .today-label{color:var(--muted);font-size:14px}
-
-    .bottle-button{
-      width:min(240px,66vw);aspect-ratio:1;border:0;border-radius:50%;margin:22px auto 12px;
-      background:radial-gradient(circle at 36% 25%,#e0f2fe 0 8%,#7dd3fc 30%,#0ea5e9 67%,#0284c7 100%);
-      box-shadow:0 18px 40px rgba(14,165,233,.38), inset 0 5px 20px rgba(255,255,255,.35);
-      display:grid;place-items:center;color:white;position:relative;transition:transform .12s ease;
-    }
-    .bottle-button:active{transform:scale(.95)}
-    .bottle-button::after{
-      content:"";position:absolute;inset:12px;border:2px solid rgba(255,255,255,.42);border-radius:50%
-    }
-    .bottle-icon{font-size:86px;filter:drop-shadow(0 8px 12px rgba(2,132,199,.25));line-height:1}
-    .tap-text{font-size:13px;color:var(--muted);font-weight:700}
-    .undo-btn{
-      border:0;background:transparent;color:var(--primary-dark);font-weight:800;padding:10px 14px
-    }
-
-    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
-    .stat{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:14px 8px;text-align:center}
-    .stat strong{display:block;font-size:21px}
-    .stat span{font-size:11px;color:var(--muted)}
-
-    .section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 2px 14px}
-    .section-head h3{margin:0;font-size:20px}
-    .section-head p{margin:3px 0 0;color:var(--muted);font-size:12px}
-
-    .card{
-      background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-      padding:16px;box-shadow:0 8px 28px rgba(15,23,42,.05);margin-bottom:14px
-    }
-    .history-list{display:grid;gap:10px}
-    .history-item{
-      display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:var(--surface-2)
-    }
-    .history-num{
-      min-width:43px;height:43px;border-radius:14px;background:linear-gradient(145deg,var(--primary),#60a5fa);
-      color:white;display:grid;place-items:center;font-weight:900
-    }
-    .history-info{min-width:0;flex:1}
-    .history-info strong{display:block;font-size:14px}
-    .history-info span{color:var(--muted);font-size:12px}
-    .delete-mini{border:0;background:transparent;color:var(--danger);font-size:18px;padding:8px}
-
-    .filter-card{padding:17px;border:1px solid var(--border);border-radius:19px;background:var(--surface);margin-bottom:12px}
-    .filter-top{display:flex;gap:12px;align-items:flex-start}
-    .filter-icon{
-      width:48px;height:48px;border-radius:15px;background:var(--primary-soft);color:var(--primary-dark);
-      display:grid;place-items:center;font-size:22px;flex:0 0 auto
-    }
-    .filter-info{flex:1;min-width:0}
-    .filter-info h4{margin:1px 0 4px}
-    .filter-info p{margin:0;color:var(--muted);font-size:12px}
-    .badge{font-size:11px;font-weight:900;padding:6px 9px;border-radius:999px;white-space:nowrap}
-    .badge.ok{background:#dcfce7;color:#15803d}
-    .badge.warn{background:#fef3c7;color:#b45309}
-    .badge.danger{background:#fee2e2;color:#b91c1c}
-    body.dark .badge.ok{background:#123923;color:#86efac}
-    body.dark .badge.warn{background:#3b2c0d;color:#fcd34d}
-    body.dark .badge.danger{background:#431b22;color:#fca5a5}
-
-    .progress{height:10px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin:14px 0 8px}
-    .progress > div{height:100%;border-radius:99px;background:linear-gradient(90deg,#38bdf8,#0284c7);transition:width .3s}
-    .filter-meta{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:var(--muted)}
-    .filter-actions{display:flex;gap:8px;margin-top:14px}
-    .btn{
-      border:0;border-radius:13px;padding:11px 13px;font-weight:850;background:var(--primary);color:white
-    }
-    .btn.soft{background:var(--primary-soft);color:var(--primary-dark)}
-    .btn.danger{background:#fee2e2;color:#b91c1c}
-    .btn.full{width:100%}
-
-    .form-grid{display:grid;gap:12px}
-    label{display:grid;gap:6px;font-size:12px;font-weight:800;color:var(--muted)}
-    input,select{
-      width:100%;border:1px solid var(--border);border-radius:13px;background:var(--surface-2);
-      color:var(--text);padding:12px;outline:none
-    }
-    input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(14,165,233,.12)}
-
-    .empty{text-align:center;padding:30px 14px;color:var(--muted)}
-    .empty .emoji{font-size:40px;margin-bottom:8px}
-
-    .toast{
-      position:fixed;z-index:100;left:50%;bottom:calc(25px + env(safe-area-inset-bottom));
-      transform:translate(-50%,30px);opacity:0;pointer-events:none;
-      background:#0f172a;color:white;border-radius:15px;padding:12px 16px;font-weight:800;font-size:13px;
-      box-shadow:0 12px 30px rgba(0,0,0,.25);transition:.25s;max-width:88%;text-align:center
-    }
-    .toast.show{opacity:1;transform:translate(-50%,0)}
-
-    .modal{
-      position:fixed;inset:0;z-index:90;background:rgba(2,6,23,.58);display:none;
-      align-items:flex-end;justify-content:center;padding:16px
-    }
-    .modal.show{display:flex}
-    .modal-box{
-      width:min(100%,520px);background:var(--surface);border-radius:25px 25px 18px 18px;padding:20px;
-      max-height:90vh;overflow:auto
-    }
-    .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-    .modal-head h3{margin:0}
-    .close-btn{border:0;background:var(--surface-2);color:var(--text);width:38px;height:38px;border-radius:12px}
-
-    .bottom-nav{
-      position:fixed;z-index:40;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));
-      background:rgba(255,255,255,.88);backdrop-filter:blur(16px);border:1px solid var(--border);
-      border-radius:20px;padding:7px;display:grid;grid-template-columns:repeat(3,1fr);box-shadow:var(--shadow)
-    }
-    body.dark .bottom-nav{background:rgba(15,28,46,.9)}
-    .bottom-btn{border:0;background:transparent;color:var(--muted);border-radius:14px;padding:8px 4px;font-size:10px;font-weight:800}
-    .bottom-btn span{display:block;font-size:20px;margin-bottom:2px}
-    .bottom-btn.active{background:var(--primary-soft);color:var(--primary-dark)}
-
-    @media(min-width:760px){
-      .main{padding-left:calc(var(--sidebar-w) + 24px);padding-bottom:28px;transition:padding-left .28s}
-      body.sidebar-collapsed .main{padding-left:24px}
-      .sidebar{transform:none}
-      .sidebar.hidden{transform:translateX(-100%)}
-      .overlay,.bottom-nav{display:none}
-      .modal{align-items:center}
-      .modal-box{border-radius:24px}
-      .hero{padding:30px}
-      .form-grid.two{grid-template-columns:1fr 1fr}
-    }
+    .brand{display:flex;align-items:center;gap:11px;padding:4px 7px}.brand img{width:46px;height:46px;border-radius:14px}.brand h1{font-size:18px;margin:0}.brand p{font-size:12px;color:var(--muted);margin:2px 0 0}
+    .nav{display:flex;flex-direction:column;gap:6px;overflow:auto;min-height:0}.nav-btn{width:100%;border:0;border-radius:13px;padding:12px 13px;display:flex;align-items:center;gap:11px;background:transparent;color:var(--text);font-weight:750;text-align:left}.nav-icon{width:26px;text-align:center;font-size:18px}.nav-btn.active{background:var(--primary);color:#fff}.nav-btn:not(.active):active{background:var(--primary-soft)}
+    .sidebar-tools{margin-top:auto;display:grid;gap:7px}.sidebar-tool{border:1px solid var(--border);border-radius:12px;padding:10px;background:var(--surface-2);color:var(--text);font-size:11px;font-weight:800;text-align:left}.sidebar-note{background:var(--primary-soft);color:var(--primary-dark);border-radius:14px;padding:11px;font-size:11px;line-height:1.4}
+    .overlay{position:fixed;inset:0;background:rgba(2,6,23,.48);z-index:45;opacity:0;pointer-events:none;transition:.2s}.overlay.show{opacity:1;pointer-events:auto}
+    .main{min-height:100vh;padding:calc(14px + env(safe-area-inset-top)) 14px calc(88px + env(safe-area-inset-bottom))}
+    .topbar{max-width:920px;margin:0 auto 15px;display:flex;align-items:center;justify-content:space-between;gap:11px}.top-left{display:flex;align-items:center;gap:10px}.icon-btn{width:43px;height:43px;border:1px solid var(--border);border-radius:13px;background:var(--surface);color:var(--text);display:grid;place-items:center;box-shadow:0 4px 14px rgba(15,35,55,.05);font-size:19px}.top-title h2{margin:0;font-size:18px}.top-title p{margin:2px 0 0;color:var(--muted);font-size:11px}
+    .page{display:none;max-width:920px;margin:0 auto}.page.active{display:block}
+    .quick-sale{width:100%;border:0;border-radius:24px;background:linear-gradient(135deg,#087e9f,var(--primary) 65%,#15a9c3);color:#fff;padding:15px 16px;display:grid;grid-template-columns:82px 1fr 28px;align-items:center;gap:12px;text-align:left;box-shadow:0 14px 30px rgba(8,145,178,.25);transition:transform .12s ease}.quick-sale:active{transform:scale(.985)}.jug-visual{width:80px;height:82px;position:relative;display:grid;place-items:center}.jug-visual svg{width:73px;height:80px;filter:drop-shadow(0 8px 10px rgba(0,71,91,.23))}.jug-plus{position:absolute;right:0;top:1px;min-width:30px;height:30px;border-radius:999px;display:grid;place-items:center;background:#fff;color:var(--primary-dark);border:3px solid rgba(255,255,255,.4);font-size:15px;font-weight:950}.quick-copy strong{display:block;font-size:clamp(20px,5vw,28px);line-height:1.05}.quick-copy span{display:block;margin-top:6px;font-size:13px;opacity:.9}.quick-arrow{font-size:32px;font-weight:300}.quick-tools{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 4px 0;color:var(--muted);font-size:12px}.link-btn{border:0;background:transparent;color:var(--primary-dark);font-weight:800;padding:8px}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 18px}.stat{background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:12px 8px;text-align:center;min-width:0}.stat strong{display:block;font-size:clamp(19px,4.7vw,25px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stat span{display:block;margin-top:2px;font-size:10px;color:var(--muted)}.stat.warning strong{color:var(--warning)}
+    .section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin:5px 2px 12px}.section-head h3{margin:0;font-size:20px}.section-head p{margin:4px 0 0;color:var(--muted);font-size:11px;line-height:1.4}.section-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+    .btn{border:0;border-radius:12px;padding:10px 12px;font-weight:800;background:var(--primary);color:#fff}.btn.soft{background:var(--primary-soft);color:var(--primary-dark)}.btn.outline{background:var(--surface);color:var(--primary-dark);border:1px solid var(--primary)}.btn.success{background:var(--success-soft);color:var(--success);border:1px solid color-mix(in srgb,var(--success) 35%,transparent)}.btn.danger{background:var(--danger-soft);color:var(--danger)}.btn.full{width:100%}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px;box-shadow:0 6px 22px rgba(15,35,55,.04);margin-bottom:12px}
+    .operations-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px}.operations-main{display:flex;align-items:center;gap:10px;min-width:0}.operations-dot{width:12px;height:12px;border-radius:50%;background:var(--success);box-shadow:0 0 0 5px var(--success-soft);flex:0 0 auto}.operations-dot.paused{background:var(--warning);box-shadow:0 0 0 5px var(--warning-soft)}.operations-dot.closed{background:var(--danger);box-shadow:0 0 0 5px var(--danger-soft)}.operations-main strong,.operations-main span{display:block}.operations-main span{font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.operations-actions{display:flex;gap:6px;align-items:center}.compact-select{width:auto;min-width:104px;padding:8px 27px 8px 9px;font-size:11px;font-weight:850}
+    .order-list{display:grid;gap:10px}.order-card{background:var(--surface);border:1px solid var(--border);border-radius:17px;padding:14px;box-shadow:0 5px 18px rgba(15,35,55,.035)}.order-top{display:flex;align-items:flex-start;justify-content:space-between;gap:9px}.order-person{min-width:0}.order-person strong{display:block;font-size:17px}.order-person span{display:block;color:var(--text);font-size:13px;margin-top:2px}.status-select{width:auto;max-width:142px;border:1px solid var(--border);border-radius:10px;padding:8px 28px 8px 9px;font-size:12px;font-weight:850;color:var(--text);background:var(--surface-2)}.status-select.pending{color:var(--warning);background:var(--warning-soft)}.status-select.route{color:var(--blue);background:var(--blue-soft)}.status-select.confirmed,.status-select.delivered{color:var(--success);background:var(--success-soft)}.status-select.cancelled{color:var(--danger);background:var(--danger-soft)}
+    .order-details{display:grid;gap:5px;margin:10px 0 11px;color:var(--muted);font-size:12px}.detail{display:flex;gap:7px;align-items:flex-start}.detail i{font-style:normal;width:16px;text-align:center;flex:0 0 auto}.order-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--border);padding-top:10px}.source-chip{font-size:10px;font-weight:800;color:var(--muted);background:var(--surface-2);border-radius:999px;padding:6px 9px}.action-group{display:flex;gap:6px}.small-btn{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:10px;padding:8px 10px;font-size:11px;font-weight:800}.small-btn.whatsapp{color:var(--success);border-color:color-mix(in srgb,var(--success) 38%,var(--border));background:var(--success-soft)}
+    .empty{text-align:center;padding:30px 12px;color:var(--muted)}.empty strong{display:block;color:var(--text);margin-bottom:5px}.empty-symbol{font-size:34px;margin-bottom:7px;color:var(--primary)}
+    .history-list{display:grid;gap:8px}.history-item{display:flex;align-items:center;gap:11px;padding:11px;border-radius:14px;background:var(--surface-2)}.history-num{min-width:41px;height:41px;border-radius:12px;background:var(--primary);color:#fff;display:grid;place-items:center;font-weight:900}.history-info{min-width:0;flex:1}.history-info strong{display:block;font-size:13px}.history-info span{color:var(--muted);font-size:11px}.delete-mini{border:0;background:transparent;color:var(--danger);font-size:15px;padding:8px}
+    .client-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}.client-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px}.client-head{display:flex;align-items:center;gap:10px}.avatar{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--primary-soft);color:var(--primary-dark);font-weight:900}.client-head strong{display:block}.client-head span{font-size:12px;color:var(--muted)}.client-meta{display:flex;justify-content:space-between;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
+    .filter-card{padding:15px;border:1px solid var(--border);border-radius:17px;background:var(--surface);margin-bottom:10px}.filter-top{display:flex;gap:11px;align-items:flex-start}.filter-icon{width:44px;height:44px;border-radius:13px;background:var(--primary-soft);color:var(--primary-dark);display:grid;place-items:center;font-size:21px;flex:0 0 auto}.filter-info{flex:1;min-width:0}.filter-info h4{margin:1px 0 3px}.filter-info p{margin:0;color:var(--muted);font-size:11px}.badge{font-size:10px;font-weight:900;padding:6px 8px;border-radius:999px;white-space:nowrap}.badge.ok{background:var(--success-soft);color:var(--success)}.badge.warn{background:var(--warning-soft);color:var(--warning)}.badge.danger{background:var(--danger-soft);color:var(--danger)}.progress{height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin:12px 0 7px}.progress>div{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--primary),var(--primary-dark));transition:width .25s}.filter-meta{display:flex;justify-content:space-between;gap:9px;font-size:10px;color:var(--muted)}.filter-actions{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}
+    .form-grid{display:grid;gap:11px}.form-grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}label{display:grid;gap:5px;font-size:11px;font-weight:800;color:var(--muted)}input,select{width:100%;border:1px solid var(--border);border-radius:11px;background:var(--surface-2);color:var(--text);padding:11px;outline:none}input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 14%,transparent)}
+    .more-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}.more-card{border:1px solid var(--border);border-radius:16px;background:var(--surface);padding:15px;text-align:left;color:var(--text)}.more-card strong{display:block;margin-bottom:4px}.more-card span{font-size:11px;color:var(--muted)}.setting-row{display:flex;align-items:flex-end;gap:9px}.setting-row label{flex:1}
+    .plan-current{border:1px solid var(--primary);background:linear-gradient(135deg,var(--primary-soft),var(--surface));display:flex;justify-content:space-between;gap:12px;align-items:center}.plan-pill{display:inline-flex;border-radius:999px;padding:6px 10px;background:var(--primary);color:#fff;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}.plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}.plan-card{position:relative;border:1px solid var(--border);border-radius:20px;background:var(--surface);padding:18px;box-shadow:var(--shadow)}.plan-card.featured{border:2px solid var(--primary)}.plan-card h4{font-size:21px;margin:0 0 4px}.plan-price{font-size:28px;font-weight:950;color:var(--primary-dark);margin:9px 0 3px}.plan-price small{font-size:12px;color:var(--muted)}.plan-list{list-style:none;padding:0;margin:14px 0;display:grid;gap:9px}.plan-list li{font-size:12px;line-height:1.4;padding-left:21px;position:relative}.plan-list li:before{content:'✓';position:absolute;left:0;color:var(--success);font-weight:900}.assistant-lock{padding:22px;text-align:center}.assistant-lock .lock-icon{font-size:36px}.integration-status{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:850}.integration-dot{width:10px;height:10px;border-radius:50%;background:var(--muted)}.integration-dot.connected{background:var(--success)}.code-id{display:block;word-break:break-all;font:11px ui-monospace,SFMono-Regular,Consolas,monospace;background:var(--surface-2);padding:10px;border-radius:10px;margin-top:7px}.premium-only.locked{opacity:.58;pointer-events:none}.notice{border-radius:14px;padding:12px 13px;background:var(--warning-soft);color:var(--warning);font-size:11px;line-height:1.5;margin-bottom:12px}
+    .range-tabs{display:flex;gap:7px;overflow:auto;padding:1px 1px 5px;margin-bottom:11px}.range-btn{border:1px solid var(--border);background:var(--surface);color:var(--muted);font-weight:850;border-radius:999px;padding:9px 13px;white-space:nowrap}.range-btn.active{background:var(--primary);border-color:var(--primary);color:#fff}.summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:12px}.summary-card{background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:13px;text-align:center}.summary-card strong{display:block;font-size:20px}.summary-card span{display:block;color:var(--muted);font-size:10px;margin-top:3px}.summary-card.money strong{color:var(--success)}
+    .chart{height:210px;display:flex;align-items:flex-end;gap:7px;padding:18px 2px 0;overflow-x:auto}.bar-wrap{flex:1;min-width:35px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px}.bar{width:72%;min-height:4px;background:linear-gradient(180deg,var(--primary),var(--primary-dark));border-radius:8px 8px 3px 3px}.bar-label{font-size:9px;color:var(--muted);white-space:nowrap}.bar-value{font-size:9px;font-weight:850}.inventory-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.inventory-card{text-align:center}.inventory-card .inventory-icon{font-size:26px}.inventory-card strong{display:block;font-size:30px;margin:4px 0}.inventory-card span{font-size:11px;color:var(--muted)}.stock-controls{display:flex;justify-content:center;gap:8px;margin-top:11px}.stock-controls button{width:39px;height:39px;border:0;border-radius:12px;background:var(--primary-soft);color:var(--primary-dark);font-size:18px;font-weight:900}.cash-positive{color:var(--success)!important}.cash-negative{color:var(--danger)!important}.help-text{color:var(--muted);font-size:11px;line-height:1.55;margin:9px 0 0}
+    .toast{position:fixed;z-index:100;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,28px);opacity:0;pointer-events:none;background:#102033;color:#fff;border-radius:13px;padding:11px 15px;font-weight:800;font-size:12px;box-shadow:0 12px 30px rgba(0,0,0,.25);transition:.22s;max-width:88%;text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}
+    .modal{position:fixed;inset:0;z-index:90;background:rgba(2,6,23,.58);display:none;align-items:flex-end;justify-content:center;padding:12px}.modal.show{display:flex}.modal-box{width:min(100%,560px);background:var(--surface);border-radius:22px 22px 16px 16px;padding:18px;max-height:92vh;overflow:auto}.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.modal-head h3{margin:0}.close-btn{border:0;background:var(--surface-2);color:var(--text);width:37px;height:37px;border-radius:11px}
+    .bottom-nav{position:fixed;z-index:40;left:0;right:0;bottom:0;padding:6px 7px calc(5px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(5,1fr);background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(16px);border-top:1px solid var(--border)}.bottom-btn{border:0;background:transparent;color:var(--muted);border-radius:11px;padding:6px 2px;font-size:9px;font-weight:800;min-width:0}.bottom-btn .bottom-icon{display:block;font-size:19px;line-height:1.1;margin-bottom:2px}.bottom-btn.active{color:var(--primary-dark);background:var(--primary-soft)}
+    @media(min-width:760px){.main{padding-left:calc(var(--sidebar-w) + 24px);padding-right:24px;padding-bottom:28px;transition:padding-left .25s}.sidebar{transform:none}.sidebar.hidden{transform:translateX(-100%)}body.sidebar-collapsed .main{padding-left:24px}.overlay,.bottom-nav{display:none}.modal{align-items:center}.modal-box{border-radius:20px}.quick-sale{padding:20px 22px}.stats{gap:12px}.order-list{grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}.summary-grid{grid-template-columns:repeat(4,1fr)}.inventory-grid{grid-template-columns:repeat(4,1fr)}}
+    @media(max-width:420px){.form-grid.two{grid-template-columns:1fr}.status-select{max-width:125px}.order-actions{align-items:flex-end}.section-head h3{font-size:18px}.btn{padding:9px 10px;font-size:12px}}
   </style>
 </head>
 <body>
   <div class="app">
     <aside class="sidebar hidden" id="sidebar">
-      <div class="brand">
-        <div class="brand-icon">💧</div>
-        <div>
-          <h1>AquaControl</h1>
-          <p>Control de purificadora</p>
-        </div>
-      </div>
-
+      <div class="brand"><img src="icon-192.png" alt=""><div><h1 id="brandName">AquaControl</h1><p>Control de purificadora</p></div></div>
       <nav class="nav">
-        <button class="nav-btn active" data-page="home"><span>🏠</span>Panel principal</button>
-        <button class="nav-btn" data-page="history"><span>📋</span>Historial de ventas</button>
-        <button class="nav-btn" data-page="filters"><span>🧰</span>Control de filtros</button>
+        <button class="nav-btn active" data-page="home"><span class="nav-icon">⌂</span>Panel principal</button>
+        <button class="nav-btn" data-page="orders"><span class="nav-icon">▤</span>Órdenes</button>
+        <button class="nav-btn" data-page="clients"><span class="nav-icon">◎</span>Clientes</button>
+        <button class="nav-btn" data-page="assistant"><span class="nav-icon">☎</span>Contestadora IA</button>
+        <button class="nav-btn" data-page="plans"><span class="nav-icon">★</span>Planes y licencia</button>
+        <button class="nav-btn" data-page="history"><span class="nav-icon">↺</span>Historial de ventas</button>
+        <button class="nav-btn" data-page="reports"><span class="nav-icon">▥</span>Reportes</button>
+        <button class="nav-btn" data-page="filters"><span class="nav-icon">▽</span>Control de filtros</button>
+        <button class="nav-btn" data-page="inventory"><span class="nav-icon">□</span>Inventario</button>
+        <button class="nav-btn" data-page="cash"><span class="nav-icon">Q</span>Caja</button>
+        <button class="nav-btn" data-page="settings"><span class="nav-icon">⚙</span>Configuración</button>
+        <button class="nav-btn" data-page="more"><span class="nav-icon">☰</span>Más opciones</button>
       </nav>
-
-      <div class="sidebar-bottom">
-        <button class="secondary-btn" id="notificationBtn">🔔 Activar notificaciones</button>
-        <button class="secondary-btn" id="themeBtn">🌙 Modo oscuro</button>
-        <button class="secondary-btn" id="exportBtn">⬇️ Exportar respaldo</button>
-        <button class="secondary-btn" id="importBtn">⬆️ Importar respaldo</button>
-        <input type="file" id="importFile" accept=".json" hidden />
+      <div class="sidebar-tools">
+        <button class="sidebar-tool" id="sidebarNotificationBtn">🔔 Activar notificaciones</button>
+        <button class="sidebar-tool" id="sidebarThemeBtn">◐ Modo oscuro</button>
+        <button class="sidebar-tool" id="sidebarExportBtn">↓ Exportar respaldo</button>
+        <button class="sidebar-tool" id="sidebarImportBtn">↑ Importar respaldo</button>
+        <div class="sidebar-note">Órdenes, ventas, filtros, inventario, caja y configuración quedan incluidos en el respaldo.</div>
       </div>
     </aside>
-
     <div class="overlay" id="overlay"></div>
 
     <main class="main">
       <header class="topbar">
-        <button class="icon-btn" id="menuBtn" aria-label="Abrir menú">☰</button>
-        <div class="top-title">
-          <h2 id="pageTitle">Panel principal</h2>
-          <p id="currentDate"></p>
-        </div>
-        <button class="icon-btn" id="quickThemeBtn" aria-label="Cambiar tema">🌙</button>
+        <div class="top-left"><button class="icon-btn" id="menuBtn" aria-label="Abrir menú">☰</button><div class="top-title"><h2 id="pageTitle">Panel principal</h2><p id="currentDate"></p></div></div>
+        <button class="icon-btn" id="quickThemeBtn" aria-label="Cambiar tema">◐</button>
       </header>
 
       <section class="page active" id="page-home">
-        <div class="hero">
-          <div class="eyebrow">Ventas de hoy</div>
-          <div class="today-count" id="todayCount">0</div>
-          <div class="today-label">garrafones registrados</div>
-
-          <button class="bottle-button" id="saleBtn" aria-label="Registrar garrafón vendido">
-            <div class="bottle-icon">🫙</div>
-          </button>
-          <div class="tap-text">Presiona para registrar una venta</div>
-          <button class="undo-btn" id="undoBtn">↶ Deshacer última venta</button>
+        <button class="quick-sale" id="saleBtn" aria-label="Registrar un garrafón vendido">
+          <span class="jug-visual" aria-hidden="true"><svg viewBox="0 0 72 82" role="img"><path d="M29 5h15v8l7 5v8c0 4 10 8 10 18v24c0 6-5 10-11 10H22c-6 0-11-4-11-10V44c0-10 10-14 10-18v-8l8-5V5Z" fill="rgba(255,255,255,.96)"/><path d="M29 5h15v8H29z" fill="#b8edf4"/><path d="M21 24h30M20 43c9 5 23 5 32 0M21 67h30" fill="none" stroke="#7ed7e5" stroke-width="3" stroke-linecap="round"/><path d="M18 48c5 2 8 8 9 15" fill="none" stroke="#d8f6fa" stroke-width="4" stroke-linecap="round"/></svg><span class="jug-plus">+1</span></span>
+          <span class="quick-copy"><strong>Garrafón vendido</strong><span>Presiona para registrar una venta</span></span><span class="quick-arrow">›</span>
+        </button>
+        <div class="quick-tools"><span id="todayBottleLabel">0 garrafones registrados hoy</span><button class="link-btn" id="undoBtn">↶ Deshacer</button></div>
+        <div class="card operations-card">
+          <div class="operations-main"><span class="operations-dot" id="operationsDot"></span><div><strong id="operationsTitle">Empresa disponible</strong><span id="operationsDetail">Recibiendo pedidos y realizando entregas</span></div></div>
+          <div class="operations-actions"><select class="compact-select" id="quickOperatingStatus" aria-label="Estado de la empresa"><option value="open">Disponible</option><option value="paused">Pausado</option><option value="closed">Cerrado</option></select></div>
         </div>
-
         <div class="stats">
-          <div class="stat"><strong id="weekCount">0</strong><span>Esta semana</span></div>
-          <div class="stat"><strong id="monthCount">0</strong><span>Este mes</span></div>
-          <div class="stat"><strong id="totalCount">0</strong><span>Total histórico</span></div>
+          <div class="stat"><strong id="todayRevenue">Q 0</strong><span>Ventas de hoy</span></div>
+          <div class="stat"><strong id="activeOrders">0</strong><span>Órdenes activas</span></div>
+          <div class="stat warning"><strong id="pendingOrders">0</strong><span>Por confirmar</span></div>
         </div>
+        <div class="section-head"><div><h3>Órdenes recientes</h3><p>Al cambiar el estado, se prepara un aviso para el cliente por WhatsApp.</p></div><div class="section-actions"><button class="btn outline" id="homeNewOrderBtn">+ Nueva orden</button><button class="link-btn" data-page="orders">Ver todas</button></div></div>
+        <div id="recentOrderList" class="order-list"></div>
+        <div class="section-head" style="margin-top:18px"><div><h3>Resumen del negocio</h3><p>Ganancia e inventario conectados con cada venta registrada.</p></div></div>
+        <div class="summary-grid"><div class="summary-card money"><strong id="homeTodayProfit">Q 0</strong><span>Ganancia de hoy</span></div><div class="summary-card money"><strong id="homeMonthProfit">Q 0</strong><span>Ganancia mensual</span></div><div class="summary-card"><strong id="homeFullStock">0</strong><span>Garrafones llenos</span></div><div class="summary-card"><strong id="homeEmptyStock">0</strong><span>Garrafones vacíos</span></div></div>
+      </section>
 
-        <div class="card" style="margin-top:14px">
-          <div class="section-head">
-            <div>
-              <h3 style="font-size:16px">Estado de filtros</h3>
-              <p>Resumen conectado con cada venta</p>
-            </div>
-          </div>
-          <div id="filterSummary"></div>
-        </div>
+      <section class="page" id="page-orders">
+        <div class="section-head"><div><h3>Órdenes</h3><p>Pedidos recibidos por la contestadora o registrados manualmente.</p></div><button class="btn" id="addOrderBtn">+ Nueva orden</button></div>
+        <div class="card"><label>Buscar por cliente, teléfono o dirección<input id="orderSearch" type="search" placeholder="Buscar órdenes" /></label></div>
+        <div id="orderList" class="order-list"></div>
+      </section>
+
+      <section class="page" id="page-clients">
+        <div class="section-head"><div><h3>Clientes</h3><p>Se crea automáticamente a partir de las órdenes guardadas.</p></div></div>
+        <div class="card"><label>Buscar cliente<input id="clientSearch" type="search" placeholder="Nombre o teléfono" /></label></div>
+        <div id="clientList" class="client-list"></div>
       </section>
 
       <section class="page" id="page-history">
-        <div class="section-head">
-          <div>
-            <h3>Historial</h3>
-            <p>Cada venta con fecha y hora</p>
-          </div>
-          <button class="btn soft" id="clearHistoryBtn">Limpiar</button>
-        </div>
+        <div class="section-head"><div><h3>Historial de ventas</h3><p>Cada pulsación del botón de venta rápida, con fecha y hora.</p></div><button class="btn danger" id="clearHistoryBtn">Limpiar</button></div>
+        <div class="range-tabs" id="historyTabs"><button class="range-btn active" data-history-range="day">Hoy</button><button class="range-btn" data-history-range="week">Semana</button><button class="range-btn" data-history-range="month">Mes</button><button class="range-btn" data-history-range="year">Año</button><button class="range-btn" data-history-range="all">Todo</button><button class="range-btn" data-history-range="custom">Personalizado</button></div>
+        <div class="card form-grid two" id="historyCustom" style="display:none"><label>Desde<input type="date" id="historyFrom" /></label><label>Hasta<input type="date" id="historyTo" /></label></div>
+        <div class="summary-grid"><div class="summary-card"><strong id="histUnits">0</strong><span>Garrafones</span></div><div class="summary-card money"><strong id="histRevenue">Q 0</strong><span>Ingresos</span></div><div class="summary-card money"><strong id="histProfit">Q 0</strong><span>Ganancia</span></div><div class="summary-card"><strong id="histAverage">Q 0</strong><span>Venta promedio</span></div></div>
+        <div class="card"><div id="historyList" class="history-list"></div></div>
+      </section>
 
-        <div class="card">
-          <label>
-            Filtrar por fecha
-            <input type="date" id="historyDate" />
-          </label>
-        </div>
-
-        <div class="card">
-          <div id="historyList" class="history-list"></div>
-        </div>
+      <section class="page" id="page-reports">
+        <div class="section-head"><div><h3>Reportes</h3><p>Ventas, ingresos, ganancias y margen por período.</p></div></div>
+        <div class="range-tabs" id="reportTabs"><button class="range-btn" data-report-range="day">Hoy</button><button class="range-btn" data-report-range="week">Semana</button><button class="range-btn active" data-report-range="month">Mes</button><button class="range-btn" data-report-range="year">Año</button><button class="range-btn" data-report-range="all">Todo</button><button class="range-btn" data-report-range="custom">Personalizado</button></div>
+        <div class="card form-grid two" id="reportCustom" style="display:none"><label>Desde<input type="date" id="reportFrom" /></label><label>Hasta<input type="date" id="reportTo" /></label></div>
+        <div class="summary-grid"><div class="summary-card"><strong id="repUnits">0</strong><span>Garrafones</span></div><div class="summary-card money"><strong id="repRevenue">Q 0</strong><span>Ingresos</span></div><div class="summary-card money"><strong id="repProfit">Q 0</strong><span>Ganancia</span></div><div class="summary-card"><strong id="repMargin">0%</strong><span>Margen</span></div></div>
+        <div class="card"><div class="section-head"><div><h3 style="font-size:16px">Ventas por fecha</h3><p>Últimos 12 puntos del período seleccionado.</p></div></div><div id="salesChart" class="chart"></div></div>
       </section>
 
       <section class="page" id="page-filters">
-        <div class="section-head">
-          <div>
-            <h3>Filtros</h3>
-            <p>Alertas por usos o por tiempo</p>
-          </div>
-          <button class="btn" id="addFilterBtn">+ Agregar</button>
-        </div>
+        <div class="section-head"><div><h3>Filtros</h3><p>Alertas por cantidad de usos o tiempo transcurrido.</p></div><button class="btn" id="addFilterBtn">+ Agregar</button></div>
         <div id="filterList"></div>
+      </section>
+
+      <section class="page" id="page-inventory">
+        <div class="section-head"><div><h3>Inventario</h3><p>Ajusta garrafones llenos y vacíos; las ventas pueden descontarlos automáticamente.</p></div></div>
+        <div class="inventory-grid">
+          <div class="card inventory-card"><div class="inventory-icon">💧</div><strong id="fullStock">0</strong><span>Garrafones llenos</span><div class="stock-controls"><button data-stock="full" data-delta="-1">−</button><button data-stock="full" data-delta="1">+</button></div></div>
+          <div class="card inventory-card"><div class="inventory-icon">○</div><strong id="emptyStock">0</strong><span>Garrafones vacíos</span><div class="stock-controls"><button data-stock="empty" data-delta="-1">−</button><button data-stock="empty" data-delta="1">+</button></div></div>
+          <div class="card inventory-card"><div class="inventory-icon">✓</div><strong id="inventorySales">0</strong><span>Ventas registradas</span></div>
+          <div class="card inventory-card"><div class="inventory-icon">!</div><strong id="minStockDisplay">0</strong><span>Nivel mínimo de alerta</span></div>
+        </div>
+        <div class="card"><strong>Control automático</strong><p class="help-text">Cuando está activado en Configuración, cada venta resta un garrafón lleno y suma uno vacío. Al deshacer esa venta, el inventario también se corrige.</p><button class="btn soft" data-page="settings">Abrir configuración</button></div>
+      </section>
+
+      <section class="page" id="page-cash">
+        <div class="section-head"><div><h3>Caja del día</h3><p>Ingresos, ganancia, gastos y resultado neto de hoy.</p></div><button class="btn" id="addExpenseBtn">+ Registrar gasto</button></div>
+        <div class="summary-grid"><div class="summary-card money"><strong id="cashRevenue">Q 0</strong><span>Ingresos</span></div><div class="summary-card money"><strong id="cashGross">Q 0</strong><span>Ganancia bruta</span></div><div class="summary-card"><strong id="cashExpenses" class="cash-negative">Q 0</strong><span>Gastos</span></div><div class="summary-card"><strong id="cashNet" class="cash-positive">Q 0</strong><span>Ganancia neta</span></div></div>
+        <div class="card"><div class="section-head"><div><h3 style="font-size:16px">Gastos de hoy</h3><p>Compras, insumos y otros egresos.</p></div></div><div id="expenseList" class="history-list"></div></div>
+      </section>
+
+      <section class="page" id="page-settings">
+        <div class="section-head"><div><h3>Configuración</h3><p>Personaliza precios, operación, utilidad e inventario.</p></div></div>
+        <form class="card form-grid" id="settingsForm">
+          <label>Nombre de la purificadora<input id="businessName" maxlength="50" placeholder="AquaControl" /></label>
+          <div class="form-grid two"><label>Precio de venta por garrafón (Q)<input id="salePrice" type="number" min="0" step="0.01" required /></label><label>Ganancia por garrafón (Q)<input id="profitPerSale" type="number" min="0" step="0.01" required /></label></div>
+          <div class="form-grid two"><label>Inventario de llenos<input id="settingFull" type="number" min="0" /></label><label>Inventario de vacíos<input id="settingEmpty" type="number" min="0" /></label></div>
+          <div class="form-grid two"><label>Alerta cuando queden menos de<input id="minStock" type="number" min="0" /></label><label>Descontar inventario con cada venta<select id="autoInventory"><option value="yes">Sí</option><option value="no">No</option></select></label></div>
+          <div class="form-grid two"><label>Estado de la empresa<select id="operatingStatus"><option value="open">Disponible</option><option value="paused">Pausado temporalmente</option><option value="closed">Cerrado</option></select></label><label>¿Se están realizando entregas?<select id="deliveryEnabled"><option value="yes">Sí, estamos repartiendo</option><option value="no">No, solo recoger en local</option></select></label></div>
+          <div class="form-grid two"><label>Área de servicio<input id="serviceArea" maxlength="120" placeholder="Ej. Zona 1 y colonias cercanas" /></label><label>Horario de atención<input id="businessHours" maxlength="100" placeholder="Ej. Lunes a sábado, 7:00–18:00" /></label></div>
+          <label>Mensaje para clientes<input id="statusMessage" maxlength="160" placeholder="Ej. Entregas en aproximadamente 45 minutos" /></label>
+          <button class="btn full" type="submit">Guardar configuración</button>
+        </form>
+        <div class="card"><strong>Datos en este dispositivo</strong><p class="help-text">La información se guarda en este navegador. Exporta un respaldo antes de borrar datos o cambiar de celular.</p></div>
+      </section>
+
+      <section class="page" id="page-assistant">
+        <div class="section-head"><div><h3>Contestadora IA de AquaControl</h3><p>Recibe pedidos telefónicos directamente en Órdenes, sin depender de Admin Control.</p></div><span class="plan-pill" id="assistantPlanPill">Premium</span></div>
+        <div id="assistantLocked" class="card assistant-lock"><div class="lock-icon">☎</div><h3>Disponible en Premium</h3><p class="help-text">Premium habilita la recepción automática de pedidos por llamada, incluyendo cliente, teléfono, cantidad, dirección y hora solicitada.</p><button class="btn" data-page="plans">Comparar planes</button></div>
+        <div id="assistantContent" style="display:none">
+          <div class="card"><div class="section-head"><div><h3 style="font-size:16px">Contestadora activa</h3><p>Los pedidos recibidos aparecerán automáticamente en la lista de órdenes.</p></div><div class="integration-status"><span class="integration-dot connected"></span><span>Premium habilitado</span></div></div></div>
+          <div class="card"><strong>Información operativa de AquaControl</strong><p class="help-text" id="assistantBusinessStatus">Estado pendiente.</p></div>
+          <div class="card"><strong>Datos que puede registrar</strong><p class="help-text">Nombre del cliente, teléfono, cantidad de garrafones, dirección, hora de la llamada y horario solicitado para la entrega.</p></div>
+        </div>
+      </section>
+
+      <section class="page" id="page-plans">
+        <div class="section-head"><div><h3>Planes de AquaControl</h3><p>El plan se revisa remotamente sin borrar ventas, órdenes ni configuración.</p></div></div>
+        <div class="card plan-current"><div><strong>Plan actual: <span id="currentPlanName">Estándar</span></strong><span class="code-id" id="installationId">—</span></div><span class="plan-pill" id="currentPlanPill">Estándar</span></div>
+        <div class="plan-grid">
+          <article class="plan-card"><h4>Estándar</h4><p class="help-text">Las herramientas esenciales para administrar la purificadora.</p><ul class="plan-list"><li>Botón rápido de venta de garrafón</li><li>Órdenes, clientes y avisos por WhatsApp</li><li>Historial, filtros, inventario y caja</li><li>Reportes, respaldos y notificaciones</li><li>Estado de empresa y reparto</li></ul></article>
+          <article class="plan-card featured"><span class="plan-pill">Más funciones</span><h4 style="margin-top:12px">Premium</h4><p class="help-text">Automatización propia de AquaControl para atender pedidos.</p><ul class="plan-list"><li>Todo lo incluido en Estándar</li><li>Contestadora de llamadas con IA</li><li>Pedidos automáticos en AquaControl</li><li>Consulta de horario y disponibilidad</li><li>Estado de reparto en tiempo real</li><li>Actualización remota desde Control Hub</li></ul></article>
+        </div>
+        <div class="notice" style="margin-top:12px">La activación remota conserva toda la información del cliente. El distribuidor asigna Premium al identificador de instalación y la aplicación lo reconoce al revisar la licencia.</div>
+        <button class="btn outline full" id="refreshLicenseBtn">Revisar licencia ahora</button>
+      </section>
+
+      <section class="page" id="page-more">
+        <div class="section-head"><div><h3>Más opciones</h3><p>Configuración, respaldos y herramientas existentes.</p></div></div>
+        <div class="more-grid">
+          <button class="more-card" data-page="history"><strong>Historial de ventas</strong><span>Consultar ventas por día, semana, mes, año o período personalizado.</span></button>
+          <button class="more-card" data-page="reports"><strong>Reportes</strong><span>Revisar ingresos, ganancias, margen y gráfica de ventas.</span></button>
+          <button class="more-card" data-page="inventory"><strong>Inventario</strong><span>Controlar garrafones llenos, vacíos y alertas de existencia.</span></button>
+          <button class="more-card" data-page="cash"><strong>Caja</strong><span>Registrar gastos y calcular la ganancia neta del día.</span></button>
+          <button class="more-card" data-page="settings"><strong>Configuración</strong><span>Definir negocio, precios, utilidad e inventario automático.</span></button>
+          <button class="more-card" data-page="assistant"><strong>Contestadora IA</strong><span>Recibir pedidos telefónicos directamente en AquaControl.</span></button>
+          <button class="more-card" data-page="plans"><strong>Planes y licencia</strong><span>Consultar las funciones de Estándar y Premium.</span></button>
+          <button class="more-card" id="notificationBtn"><strong>Activar notificaciones</strong><span>Recibir alertas de mantenimiento de filtros.</span></button>
+          <button class="more-card" id="themeBtn"><strong>Modo oscuro</strong><span>Cambiar la apariencia de AquaControl.</span></button>
+          <button class="more-card" id="exportBtn"><strong>Exportar respaldo</strong><span>Descargar ventas, órdenes, filtros y configuración.</span></button>
+          <button class="more-card" id="importBtn"><strong>Importar respaldo</strong><span>Restaurar un archivo JSON de AquaControl.</span></button>
+        </div>
+        <input type="file" id="importFile" accept=".json" hidden />
       </section>
     </main>
 
-    <nav class="bottom-nav">
-      <button class="bottom-btn active" data-page="home"><span>🏠</span>Inicio</button>
-      <button class="bottom-btn" data-page="history"><span>📋</span>Historial</button>
-      <button class="bottom-btn" data-page="filters"><span>🧰</span>Filtros</button>
+    <nav class="bottom-nav" aria-label="Navegación principal">
+      <button class="bottom-btn active" data-page="home"><span class="bottom-icon">⌂</span>Inicio</button>
+      <button class="bottom-btn" data-page="orders"><span class="bottom-icon">▤</span>Órdenes</button>
+      <button class="bottom-btn" data-page="clients"><span class="bottom-icon">◎</span>Clientes</button>
+      <button class="bottom-btn" data-page="filters"><span class="bottom-icon">▽</span>Filtros</button>
+      <button class="bottom-btn" data-page="more"><span class="bottom-icon">☰</span>Más</button>
     </nav>
   </div>
 
   <div class="toast" id="toast"></div>
 
+  <div class="modal" id="orderModal">
+    <div class="modal-box">
+      <div class="modal-head"><h3 id="orderModalTitle">Nueva orden</h3><button class="close-btn" data-close-modal="orderModal">✕</button></div>
+      <form id="orderForm" class="form-grid">
+        <input type="hidden" id="orderId" />
+        <div class="form-grid two"><label>Nombre del cliente<input id="orderName" required maxlength="80" placeholder="Nombre completo" /></label><label>Teléfono / WhatsApp<input id="orderPhone" required inputmode="tel" maxlength="20" placeholder="Ej. 5555 1234" /></label></div>
+        <div class="form-grid two"><label>Cantidad de garrafones<input id="orderQuantity" type="number" min="1" value="1" required /></label><label>Hora de la llamada<input id="orderCallTime" type="datetime-local" required /></label></div>
+        <label>Dirección de entrega<input id="orderAddress" required maxlength="160" placeholder="Calle, número, colonia o zona" /></label>
+        <div class="form-grid two"><label>Fecha de entrega<input id="orderDeliveryDate" type="date" /></label><label>Hora solicitada<input id="orderDeliveryTime" type="time" /></label></div>
+        <div class="form-grid two"><label>Estado<select id="orderStatus"><option>Por confirmar</option><option>Confirmada</option><option>En ruta</option><option>Entregada</option><option>Cancelada</option></select></label><label>Origen<select id="orderSource"><option value="assistant">Contestadora</option><option value="manual">Registro manual</option></select></label></div>
+        <button class="btn full" type="submit">Guardar orden</button>
+      </form>
+    </div>
+  </div>
+
   <div class="modal" id="filterModal">
     <div class="modal-box">
-      <div class="modal-head">
-        <h3 id="modalTitle">Agregar filtro</h3>
-        <button class="close-btn" id="closeModal">✕</button>
-      </div>
+      <div class="modal-head"><h3 id="filterModalTitle">Agregar filtro</h3><button class="close-btn" data-close-modal="filterModal">✕</button></div>
       <form id="filterForm" class="form-grid">
-        <input type="hidden" id="filterId" />
-        <label>
-          Nombre del filtro
-          <input id="filterName" required placeholder="Ej. Filtro de carbón activado" maxlength="60" />
-        </label>
-        <div class="form-grid two">
-          <label>
-            Cambiar después de cuántos usos
-            <input id="filterMaxUses" type="number" min="1" value="1000" required />
-          </label>
-          <label>
-            Cambiar después de cuántos días
-            <input id="filterMaxDays" type="number" min="1" value="90" required />
-          </label>
-        </div>
-        <label>
-          Fecha de última instalación o cambio
-          <input id="filterStartDate" type="date" required />
-        </label>
-        <button class="btn full" type="submit">Guardar filtro</button>
+        <input type="hidden" id="filterId" /><label>Nombre del filtro<input id="filterName" required placeholder="Ej. Filtro de carbón activado" maxlength="60" /></label>
+        <div class="form-grid two"><label>Cambiar después de cuántos usos<input id="filterMaxUses" type="number" min="1" value="1000" required /></label><label>Cambiar después de cuántos días<input id="filterMaxDays" type="number" min="1" value="90" required /></label></div>
+        <label>Fecha de última instalación o cambio<input id="filterStartDate" type="date" required /></label><button class="btn full" type="submit">Guardar filtro</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="expenseModal">
+    <div class="modal-box">
+      <div class="modal-head"><h3>Registrar gasto</h3><button class="close-btn" data-close-modal="expenseModal">✕</button></div>
+      <form id="expenseForm" class="form-grid">
+        <label>Descripción<input id="expenseDescription" required maxlength="80" placeholder="Ej. Compra de tapones" /></label>
+        <label>Monto (Q)<input id="expenseAmount" type="number" min="0.01" step="0.01" required /></label>
+        <button class="btn full" type="submit">Guardar gasto</button>
       </form>
     </div>
   </div>
 
 <script>
 (() => {
-  const STORAGE_KEY = 'aquacontrol_data_v1';
-  const THEME_KEY = 'aquacontrol_theme';
-
-  const defaultData = {
-    sales: [],
-    filters: [
-      { id: cryptoId(), name: 'Filtro de sedimentos', maxUses: 1000, maxDays: 90, startDate: todayISO(), baseSales: 0 },
-      { id: cryptoId(), name: 'Filtro de carbón activado', maxUses: 1800, maxDays: 180, startDate: todayISO(), baseSales: 0 },
-      { id: cryptoId(), name: 'Membrana de ósmosis', maxUses: 5000, maxDays: 365, startDate: todayISO(), baseSales: 0 }
-    ]
-  };
-
-  let data = loadData();
-  let currentPage = 'home';
-
-  const $ = id => document.getElementById(id);
-  const sidebar = $('sidebar');
-  const overlay = $('overlay');
-  const toast = $('toast');
-
-  function cryptoId(){
-    return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2);
-  }
-
-  function todayISO(){
-    const d = new Date();
-    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-    return d.toISOString().slice(0,10);
-  }
-
-  function loadData(){
-    try{
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      if(saved && Array.isArray(saved.sales) && Array.isArray(saved.filters)) return saved;
-    }catch(e){}
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultData));
-    return JSON.parse(JSON.stringify(defaultData));
-  }
-
-  function saveData(){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  }
-
-  function formatDateTime(timestamp){
-    return new Intl.DateTimeFormat('es-GT', {
-      day:'2-digit', month:'short', year:'numeric',
-      hour:'2-digit', minute:'2-digit'
-    }).format(new Date(timestamp));
-  }
-
-  function dateOnly(timestamp){
-    const d = new Date(timestamp);
-    const local = new Date(d.getTime() - d.getTimezoneOffset()*60000);
-    return local.toISOString().slice(0,10);
-  }
-
-  function showToast(message){
-    toast.textContent = message;
-    toast.classList.add('show');
-    clearTimeout(showToast.timer);
-    showToast.timer = setTimeout(() => toast.classList.remove('show'), 2200);
-  }
-
-  function notify(title, body){
-    showToast(body);
-    if('Notification' in window && Notification.permission === 'granted'){
-      try{ new Notification(title, { body, icon:'' }); }catch(e){}
-    }
-  }
-
-  function localDayStart(date = new Date()){
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  }
-
-  function render(){
-    renderStats();
-    renderHistory();
-    renderFilters();
-    renderFilterSummary();
-    updateThemeButtons();
-  }
-
-  function renderStats(){
-    const now = new Date();
-    const todayStart = localDayStart(now);
-    const day = now.getDay() || 7;
-    const weekStart = new Date(todayStart);
-    weekStart.setDate(todayStart.getDate() - day + 1);
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-
-    $('todayCount').textContent = data.sales.filter(s => new Date(s.time) >= todayStart).length;
-    $('weekCount').textContent = data.sales.filter(s => new Date(s.time) >= weekStart).length;
-    $('monthCount').textContent = data.sales.filter(s => new Date(s.time) >= monthStart).length;
-    $('totalCount').textContent = data.sales.length;
-  }
-
-  function renderHistory(){
-    const selected = $('historyDate').value;
-    const sales = [...data.sales]
-      .filter(s => !selected || dateOnly(s.time) === selected)
-      .sort((a,b) => b.time - a.time);
-
-    if(!sales.length){
-      $('historyList').innerHTML = '<div class="empty"><div class="emoji">📭</div>No hay ventas registradas para esta fecha.</div>';
-      return;
-    }
-
-    $('historyList').innerHTML = sales.map((s, i) => `
-      <div class="history-item">
-        <div class="history-num">${sales.length - i}</div>
-        <div class="history-info">
-          <strong>Garrafón vendido</strong>
-          <span>${formatDateTime(s.time)}</span>
-        </div>
-        <button class="delete-mini" data-delete-sale="${s.id}" aria-label="Eliminar">🗑️</button>
-      </div>
-    `).join('');
-  }
-
-  function filterStatus(filter){
-    const uses = Math.max(0, data.sales.length - Number(filter.baseSales || 0));
-    const start = new Date(filter.startDate + 'T00:00:00');
-    const days = Math.max(0, Math.floor((localDayStart() - start) / 86400000));
-    const usePct = (uses / filter.maxUses) * 100;
-    const dayPct = (days / filter.maxDays) * 100;
-    const pct = Math.max(usePct, dayPct);
-    let level = 'ok', text = 'En buen estado';
-    if(pct >= 100){ level = 'danger'; text = 'Cambiar ahora'; }
-    else if(pct >= 80){ level = 'warn'; text = 'Próximo a cambio'; }
-    return { uses, days, pct: Math.min(100,pct), level, text, remainingUses: Math.max(0, filter.maxUses - uses), remainingDays: Math.max(0, filter.maxDays - days) };
-  }
-
-  function renderFilters(){
-    if(!data.filters.length){
-      $('filterList').innerHTML = '<div class="card empty"><div class="emoji">🧰</div>No hay filtros configurados.</div>';
-      return;
-    }
-
-    $('filterList').innerHTML = data.filters.map(f => {
-      const st = filterStatus(f);
-      return `
-        <div class="filter-card">
-          <div class="filter-top">
-            <div class="filter-icon">🧪</div>
-            <div class="filter-info">
-              <h4>${escapeHTML(f.name)}</h4>
-              <p>Instalado: ${new Intl.DateTimeFormat('es-GT',{dateStyle:'medium'}).format(new Date(f.startDate+'T00:00:00'))}</p>
-            </div>
-            <span class="badge ${st.level}">${st.text}</span>
-          </div>
-          <div class="progress"><div style="width:${st.pct}%"></div></div>
-          <div class="filter-meta">
-            <span>${st.uses} / ${f.maxUses} usos</span>
-            <span>${st.days} / ${f.maxDays} días</span>
-          </div>
-          <div class="filter-actions">
-            <button class="btn soft" data-edit-filter="${f.id}">Editar</button>
-            <button class="btn" data-reset-filter="${f.id}">Marcar cambiado</button>
-            <button class="btn danger" data-delete-filter="${f.id}">Eliminar</button>
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  function renderFilterSummary(){
-    if(!data.filters.length){
-      $('filterSummary').innerHTML = '<div class="empty">No hay filtros configurados.</div>';
-      return;
-    }
-    $('filterSummary').innerHTML = data.filters.map(f => {
-      const st = filterStatus(f);
-      return `
-        <div class="history-item" style="margin-bottom:8px">
-          <div class="filter-icon" style="width:42px;height:42px">🧪</div>
-          <div class="history-info">
-            <strong>${escapeHTML(f.name)}</strong>
-            <span>${st.remainingUses} usos o ${st.remainingDays} días restantes</span>
-          </div>
-          <span class="badge ${st.level}">${Math.round(st.pct)}%</span>
-        </div>`;
-    }).join('');
-  }
-
-  function escapeHTML(value){
-    return String(value).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-  }
-
-  function checkFilterAlerts(){
-    data.filters.forEach(f => {
-      const st = filterStatus(f);
-      if(st.level === 'danger'){
-        notify('Cambio de filtro requerido', `${f.name}: ya llegó a su límite de uso o tiempo.`);
-      } else if(st.level === 'warn' && (st.uses === Math.ceil(f.maxUses*.8) || st.days === Math.ceil(f.maxDays*.8))){
-        notify('Filtro próximo a cambio', `${f.name}: ha alcanzado aproximadamente el 80% de su vida útil.`);
+  'use strict';
+  const STORAGE_KEY='aquacontrol_data_v1',LEGACY_KEY='aquacontrol_v3',THEME_KEY='aquacontrol_theme',INSTALL_KEY='aquacontrol_installation_id',DEVICE_TOKEN_KEY='aquacontrol_control_hub_token',LICENSE_CACHE_KEY='aquacontrol_license_cache_v2';
+  const CONTROL_HUB_ENDPOINT='https://control-hub-felix.fhernandeza12.chatgpt.site/api/installations/heartbeat',APP_VERSION='2.1.0';
+  const $=id=>document.getElementById(id);
+  const todayISO=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
+  const toLocalInput=value=>{const d=new Date(value);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)};
+  function cryptoId(){return window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}
+  const defaultFilters=()=>[
+    {id:cryptoId(),name:'Filtro de sedimentos',maxUses:1000,maxDays:90,startDate:todayISO(),baseSales:0},
+    {id:cryptoId(),name:'Filtro de carbón activado',maxUses:1800,maxDays:180,startDate:todayISO(),baseSales:0},
+    {id:cryptoId(),name:'Membrana de ósmosis',maxUses:5000,maxDays:365,startDate:todayISO(),baseSales:0}
+  ];
+  function parsedStorage(key){try{return JSON.parse(localStorage.getItem(key))}catch(_e){return null}}
+  function uniqueById(items){const map=new Map();items.filter(Boolean).forEach(item=>map.set(item.id||cryptoId(),item));return [...map.values()]}
+  function normalizeData(saved,legacy=null){
+    const primary=saved||{},old=legacy||{},primarySettings=primary.settings||{},oldSettings=old.settings||{};
+    const salePrice=Number(primarySettings.salePrice??primarySettings.unitPrice??oldSettings.salePrice??15);
+    return {
+      sales:uniqueById([...(Array.isArray(old.sales)?old.sales:[]),...(Array.isArray(primary.sales)?primary.sales:[])]),
+      filters:Array.isArray(primary.filters)?primary.filters:(Array.isArray(old.filters)?old.filters:defaultFilters()),
+      orders:Array.isArray(primary.orders)?primary.orders:[],
+      expenses:uniqueById([...(Array.isArray(old.expenses)?old.expenses:[]),...(Array.isArray(primary.expenses)?primary.expenses:[])]),
+      settings:{
+        businessName:String(primarySettings.businessName??oldSettings.businessName??'AquaControl'),
+        salePrice:Number.isFinite(salePrice)?salePrice:15,
+        profitPerSale:Math.max(0,Number(primarySettings.profitPerSale??oldSettings.profitPerSale??5)||0),
+        fullStock:Math.max(0,Number(primarySettings.fullStock??oldSettings.fullStock??25)||0),
+        emptyStock:Math.max(0,Number(primarySettings.emptyStock??oldSettings.emptyStock??0)||0),
+        minStock:Math.max(0,Number(primarySettings.minStock??oldSettings.minStock??5)||0),
+        autoInventory:(primarySettings.autoInventory??oldSettings.autoInventory??true)!==false,
+        operatingStatus:['open','paused','closed'].includes(primarySettings.operatingStatus)?primarySettings.operatingStatus:'open',
+        deliveryEnabled:(primarySettings.deliveryEnabled??true)!==false,
+        serviceArea:String(primarySettings.serviceArea??''),
+        businessHours:String(primarySettings.businessHours??''),
+        statusMessage:String(primarySettings.statusMessage??'')
       }
-    });
-  }
-
-  function registerSale(){
-    data.sales.push({ id: cryptoId(), time: Date.now() });
-    saveData();
-    render();
-    if(navigator.vibrate) navigator.vibrate(40);
-    showToast('Garrafón registrado correctamente');
-    checkFilterAlerts();
-  }
-
-  function undoSale(){
-    if(!data.sales.length){ showToast('No hay ventas para deshacer'); return; }
-    const latest = [...data.sales].sort((a,b) => b.time-a.time)[0];
-    data.sales = data.sales.filter(s => s.id !== latest.id);
-    saveData(); render(); showToast('Última venta eliminada');
-  }
-
-  function navigate(page){
-    currentPage = page;
-    document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-'+page));
-    document.querySelectorAll('[data-page]').forEach(b => b.classList.toggle('active', b.dataset.page === page));
-    $('pageTitle').textContent = ({home:'Panel principal',history:'Historial de ventas',filters:'Control de filtros'})[page];
-    closeSidebar();
-  }
-
-  function openSidebar(){
-    sidebar.classList.remove('hidden');
-    if(window.innerWidth < 760) overlay.classList.add('show');
-    else document.body.classList.remove('sidebar-collapsed');
-  }
-
-  function closeSidebar(){
-    sidebar.classList.add('hidden');
-    overlay.classList.remove('show');
-    if(window.innerWidth >= 760) document.body.classList.add('sidebar-collapsed');
-  }
-
-  function applyTheme(theme){
-    document.body.classList.toggle('dark', theme === 'dark');
-    localStorage.setItem(THEME_KEY, theme);
-    updateThemeButtons();
-  }
-
-  function updateThemeButtons(){
-    const dark = document.body.classList.contains('dark');
-    $('themeBtn').textContent = dark ? '☀️ Modo claro' : '🌙 Modo oscuro';
-    $('quickThemeBtn').textContent = dark ? '☀️' : '🌙';
-  }
-
-  function toggleTheme(){
-    applyTheme(document.body.classList.contains('dark') ? 'light' : 'dark');
-  }
-
-  function openFilterModal(filter=null){
-    $('modalTitle').textContent = filter ? 'Editar filtro' : 'Agregar filtro';
-    $('filterId').value = filter?.id || '';
-    $('filterName').value = filter?.name || '';
-    $('filterMaxUses').value = filter?.maxUses || 1000;
-    $('filterMaxDays').value = filter?.maxDays || 90;
-    $('filterStartDate').value = filter?.startDate || todayISO();
-    $('filterModal').classList.add('show');
-  }
-
-  function closeFilterModal(){
-    $('filterModal').classList.remove('show');
-  }
-
-  $('saleBtn').addEventListener('click', registerSale);
-  $('undoBtn').addEventListener('click', undoSale);
-  $('menuBtn').addEventListener('click', () => sidebar.classList.contains('hidden') ? openSidebar() : closeSidebar());
-  overlay.addEventListener('click', closeSidebar);
-  $('themeBtn').addEventListener('click', toggleTheme);
-  $('quickThemeBtn').addEventListener('click', toggleTheme);
-  document.querySelectorAll('[data-page]').forEach(btn => btn.addEventListener('click', () => navigate(btn.dataset.page)));
-  $('historyDate').addEventListener('change', renderHistory);
-  $('addFilterBtn').addEventListener('click', () => openFilterModal());
-  $('closeModal').addEventListener('click', closeFilterModal);
-  $('filterModal').addEventListener('click', e => { if(e.target === $('filterModal')) closeFilterModal(); });
-
-  $('historyList').addEventListener('click', e => {
-    const id = e.target.closest('[data-delete-sale]')?.dataset.deleteSale;
-    if(!id) return;
-    data.sales = data.sales.filter(s => s.id !== id);
-    saveData(); render(); showToast('Registro eliminado');
-  });
-
-  $('filterList').addEventListener('click', e => {
-    const editId = e.target.closest('[data-edit-filter]')?.dataset.editFilter;
-    const resetId = e.target.closest('[data-reset-filter]')?.dataset.resetFilter;
-    const deleteId = e.target.closest('[data-delete-filter]')?.dataset.deleteFilter;
-
-    if(editId){
-      openFilterModal(data.filters.find(f => f.id === editId));
-    }
-    if(resetId){
-      const f = data.filters.find(f => f.id === resetId);
-      if(f && confirm(`¿Confirmas que cambiaste "${f.name}"?`)){
-        f.startDate = todayISO();
-        f.baseSales = data.sales.length;
-        saveData(); render(); showToast('Filtro reiniciado');
-      }
-    }
-    if(deleteId && confirm('¿Eliminar este filtro?')){
-      data.filters = data.filters.filter(f => f.id !== deleteId);
-      saveData(); render(); showToast('Filtro eliminado');
-    }
-  });
-
-  $('filterForm').addEventListener('submit', e => {
-    e.preventDefault();
-    const id = $('filterId').value;
-    const existing = data.filters.find(f => f.id === id);
-    const item = {
-      id: id || cryptoId(),
-      name: $('filterName').value.trim(),
-      maxUses: Number($('filterMaxUses').value),
-      maxDays: Number($('filterMaxDays').value),
-      startDate: $('filterStartDate').value,
-      baseSales: existing?.baseSales ?? data.sales.length
     };
-    if(existing) Object.assign(existing,item);
-    else data.filters.push(item);
-    saveData(); render(); closeFilterModal(); showToast('Filtro guardado');
-  });
-
-  $('clearHistoryBtn').addEventListener('click', () => {
-    if(confirm('¿Eliminar todo el historial de ventas? Esta acción no se puede deshacer.')){
-      data.sales = [];
-      data.filters.forEach(f => f.baseSales = 0);
-      saveData(); render(); showToast('Historial eliminado');
-    }
-  });
-
-  $('notificationBtn').addEventListener('click', async () => {
-    if(!('Notification' in window)){
-      showToast('Este navegador no admite notificaciones');
-      return;
-    }
-    const result = await Notification.requestPermission();
-    showToast(result === 'granted' ? 'Notificaciones activadas' : 'Permiso de notificaciones no concedido');
-  });
-
-  $('exportBtn').addEventListener('click', () => {
-    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `aquacontrol-respaldo-${todayISO()}.json`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url),500);
-    showToast('Respaldo exportado');
-  });
-
-  $('importBtn').addEventListener('click', () => $('importFile').click());
-  $('importFile').addEventListener('change', async e => {
-    const file = e.target.files[0];
-    if(!file) return;
-    try{
-      const parsed = JSON.parse(await file.text());
-      if(!Array.isArray(parsed.sales) || !Array.isArray(parsed.filters)) throw new Error();
-      data = parsed; saveData(); render(); showToast('Respaldo importado');
-    }catch(err){ alert('El archivo no es un respaldo válido de AquaControl.'); }
-    e.target.value = '';
-  });
-
-  $('currentDate').textContent = new Intl.DateTimeFormat('es-GT', {weekday:'long',day:'numeric',month:'long'}).format(new Date());
-  $('historyDate').value = todayISO();
-  applyTheme(localStorage.getItem(THEME_KEY) || 'light');
-  if(window.innerWidth >= 760) openSidebar();
-  render();
-
-  if('serviceWorker' in navigator){
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('service-worker.js').catch(() => {});
-    });
   }
+  function loadData(){const migrated=normalizeData(parsedStorage(STORAGE_KEY),parsedStorage(LEGACY_KEY));localStorage.setItem(STORAGE_KEY,JSON.stringify(migrated));return migrated}
+  function installationId(){let id=localStorage.getItem(INSTALL_KEY);if(!id){id='aqua-'+cryptoId();localStorage.setItem(INSTALL_KEY,id)}return id}
+  function deviceToken(){let token=localStorage.getItem(DEVICE_TOKEN_KEY);if(!token){token=Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,'0')).join('');localStorage.setItem(DEVICE_TOKEN_KEY,token)}return token}
+  let data=loadData(),license={plan:'standard',active:true,source:'cache',...(parsedStorage(LICENSE_CACHE_KEY)||{})},currentPage='home',historyRange='day',reportRange='month';
+  const sidebar=$('sidebar'),overlay=$('overlay'),toast=$('toast');
+  const saveData=()=>localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+  const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  const localDayStart=(date=new Date())=>new Date(date.getFullYear(),date.getMonth(),date.getDate());
+  const dateOnly=timestamp=>{const d=new Date(timestamp);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
+  const formatDateTime=timestamp=>new Intl.DateTimeFormat('es-GT',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(timestamp));
+  const formatTime=timestamp=>new Intl.DateTimeFormat('es-GT',{hour:'2-digit',minute:'2-digit'}).format(new Date(timestamp));
+  const money=value=>new Intl.NumberFormat('es-GT',{style:'currency',currency:'GTQ',minimumFractionDigits:0,maximumFractionDigits:2}).format(Number(value)||0).replace('GTQ','Q');
+  const sum=(list,key,fallback=0)=>list.reduce((total,item)=>total+Number(item[key]??fallback),0);
+  function periodBounds(range,from,to){const now=new Date(),end=new Date(now.getFullYear(),now.getMonth(),now.getDate(),23,59,59,999);let start;if(range==='day')start=localDayStart(now);else if(range==='week'){start=localDayStart(now);const day=now.getDay()||7;start.setDate(start.getDate()-day+1)}else if(range==='month')start=new Date(now.getFullYear(),now.getMonth(),1);else if(range==='year')start=new Date(now.getFullYear(),0,1);else if(range==='all')start=new Date(0);else{start=from?new Date(from+'T00:00:00'):new Date(0);return[start,to?new Date(to+'T23:59:59.999'):end]}return[start,end]}
+  function salesFor(range,from,to){const [start,end]=periodBounds(range,from,to);return data.sales.filter(s=>new Date(s.time)>=start&&new Date(s.time)<=end)}
+  const bottleNoun=quantity=>Number(quantity)===1?'garrafón':'garrafones';
+  function showToast(message){toast.textContent=message;toast.classList.add('show');clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>toast.classList.remove('show'),2400)}
+  function notify(title,body){showToast(body);if('Notification'in window&&Notification.permission==='granted'){try{new Notification(title,{body,icon:'icon-192.png'})}catch(_e){}}}
+  function statusClass(status){return({'Por confirmar':'pending','Confirmada':'confirmed','En ruta':'route','Entregada':'delivered','Cancelada':'cancelled'})[status]||''}
+  function deliveryLabel(order){if(!order.deliveryDate&&!order.deliveryTime)return`Entrega: ${order.requestedTime||'lo antes posible'}`;const date=order.deliveryDate?new Intl.DateTimeFormat('es-GT',{day:'numeric',month:'short'}).format(new Date(order.deliveryDate+'T12:00:00')):'Fecha pendiente';const time=order.deliveryTime?new Intl.DateTimeFormat('es-GT',{hour:'numeric',minute:'2-digit'}).format(new Date('2000-01-01T'+order.deliveryTime)):'';return`Entrega: ${date}${time?', '+time:''}`}
+  function normalizePhone(phone){let digits=String(phone||'').replace(/\D/g,'');if(digits.length===8)digits='502'+digits;return digits}
+  function whatsappMessage(order){const delivery=deliveryLabel(order).replace('Entrega: ',''),qty=`${order.quantity} ${bottleNoun(order.quantity)}`,brand=data.settings.businessName||'AquaControl';if(order.status==='En ruta')return`Hola ${order.name}. Tu pedido de ${qty} ya va en camino. Horario acordado: ${delivery}. — ${brand}`;if(order.status==='Confirmada')return`Hola ${order.name}. Confirmamos tu pedido de ${qty}. Entrega programada: ${delivery}. — ${brand}`;if(order.status==='Entregada')return`Hola ${order.name}. Tu pedido de ${qty} figura como entregado. Gracias por preferirnos. — ${brand}`;return`Hola ${order.name}. Te contactamos sobre tu pedido de ${qty}. Entrega: ${delivery}. — ${brand}`}
+  function openWhatsApp(order){const phone=normalizePhone(order.phone);if(!phone){showToast('Agrega un teléfono para avisar por WhatsApp');return}window.open(`https://wa.me/${phone}?text=${encodeURIComponent(whatsappMessage(order))}`,'_blank','noopener');showToast('Mensaje preparado en WhatsApp')}
+  const isPremium=()=>license.active!==false&&license.plan==='premium';
+  function statusPayload(){const s=data.settings;return{companyName:s.businessName,operationalStatus:s.operatingStatus,open:s.operatingStatus==='open',acceptingOrders:s.operatingStatus==='open',deliveryEnabled:Boolean(s.deliveryEnabled),serviceArea:s.serviceArea,businessHours:s.businessHours,message:s.statusMessage,updatedAt:new Date().toISOString()}}
+  function renderOperations(){const s=data.settings,status=s.operatingStatus,labels={open:'Empresa disponible',paused:'Pedidos pausados',closed:'Empresa cerrada'},details={open:s.deliveryEnabled?'Recibiendo pedidos y realizando entregas':'Recibiendo pedidos · solo recoger en local',paused:'La contestadora informará que los pedidos están pausados',closed:'La contestadora informará que la empresa está cerrada'};$('operationsTitle').textContent=labels[status];$('operationsDetail').textContent=s.statusMessage||details[status];$('operationsDot').className=`operations-dot ${status==='open'?'':status}`;$('quickOperatingStatus').value=status;$('assistantBusinessStatus').textContent=`${labels[status]}. ${s.deliveryEnabled?'Hay reparto disponible.':'No hay reparto; solo recoger en local.'}${s.businessHours?' Horario: '+s.businessHours+'.':''}${s.serviceArea?' Área: '+s.serviceArea+'.':''}`}
+  function renderPlans(){const premium=isPremium(),name=premium?'Premium':'Estándar';$('currentPlanName').textContent=name;$('currentPlanPill').textContent=name;$('installationId').textContent=`ID: ${installationId()}`;$('assistantLocked').style.display=premium?'none':'block';$('assistantContent').style.display=premium?'block':'none';$('assistantPlanPill').textContent=name}
+  async function refreshLicense(silent=false){try{const response=await fetch(CONTROL_HUB_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({project:'aqua-control',installId:installationId(),deviceToken:deviceToken(),displayName:data.settings.businessName||'AquaControl',version:APP_VERSION,license:isPremium()?'Premium':'Estándar',platform:navigator.userAgent||'Navegador',source:'github'})});if(!response.ok)throw new Error('No se pudo consultar Control Hub');const result=await response.json(),desired=String(result.desiredPlan||'').toLowerCase();if(desired==='standard'||desired==='premium')license={plan:desired,active:true,source:'control-hub'};localStorage.setItem(LICENSE_CACHE_KEY,JSON.stringify(license));renderPlans();if(!silent)showToast(`Plan revisado: ${isPremium()?'Premium':'Estándar'}`)}catch(_e){renderPlans();if(!silent)showToast('Sin conexión: se conserva el último plan disponible')}}
+  function render(){renderStats();renderOrders();renderClients();renderHistory();renderReports();renderFilters();renderInventory();renderCash();fillSettings();renderOperations();renderPlans();updateThemeButtons();$('brandName').textContent=data.settings.businessName||'AquaControl'}
+  function renderStats(){
+    const now=new Date(),todayStart=localDayStart(now),monthStart=new Date(now.getFullYear(),now.getMonth(),1);
+    const todaySales=data.sales.filter(s=>new Date(s.time)>=todayStart),active=data.orders.filter(o=>!['Entregada','Cancelada'].includes(o.status)),pending=data.orders.filter(o=>o.status==='Por confirmar');
+    const monthSales=data.sales.filter(s=>new Date(s.time)>=monthStart);
+    $('todayRevenue').textContent=money(sum(todaySales,'price',data.settings.salePrice));$('activeOrders').textContent=active.length;$('pendingOrders').textContent=pending.length;$('todayBottleLabel').textContent=`${todaySales.length} ${bottleNoun(todaySales.length)} registrado${todaySales.length===1?'':'s'} hoy`;
+    $('homeTodayProfit').textContent=money(sum(todaySales,'profit',data.settings.profitPerSale));$('homeMonthProfit').textContent=money(sum(monthSales,'profit',data.settings.profitPerSale));$('homeFullStock').textContent=data.settings.fullStock;$('homeEmptyStock').textContent=data.settings.emptyStock;
+  }
+  function orderCard(order){
+    const options=['Por confirmar','Confirmada','En ruta','Entregada','Cancelada'].map(s=>`<option${s===order.status?' selected':''}>${s}</option>`).join('');
+    return `<article class="order-card" data-order-card="${order.id}"><div class="order-top"><div class="order-person"><strong>${escapeHTML(order.name)}</strong><span>${Number(order.quantity)} ${bottleNoun(order.quantity)} de 20 L</span></div><select class="status-select ${statusClass(order.status)}" data-order-status="${order.id}" aria-label="Estado de la orden">${options}</select></div><div class="order-details"><div class="detail"><i>☎</i><span>Llamó ${formatTime(order.callTime)}</span></div><div class="detail"><i>⌖</i><span>${escapeHTML(order.address)}</span></div><div class="detail"><i>◷</i><span>${escapeHTML(deliveryLabel(order))}</span></div></div><div class="order-actions"><span class="source-chip">${order.source==='assistant'?'Tomada por asistente':'Registro manual'}</span><div class="action-group"><button class="small-btn" data-edit-order="${order.id}">Editar</button><button class="small-btn whatsapp" data-whatsapp-order="${order.id}">WhatsApp · Avisar</button></div></div></article>`;
+  }
+  function renderOrders(){
+    const query=$('orderSearch').value.trim().toLowerCase(),all=[...data.orders].sort((a,b)=>b.callTime-a.callTime),filtered=all.filter(o=>!query||[o.name,o.phone,o.address].some(v=>String(v||'').toLowerCase().includes(query)));
+    $('recentOrderList').innerHTML=all.length?all.slice(0,3).map(orderCard).join(''):'<div class="card empty"><div class="empty-symbol">▤</div><strong>Todavía no hay órdenes</strong>Registra una orden manual o conecta aquí los pedidos de la contestadora.</div>';
+    $('orderList').innerHTML=filtered.length?filtered.map(orderCard).join(''):'<div class="card empty"><div class="empty-symbol">▤</div><strong>No se encontraron órdenes</strong>Prueba con otra búsqueda o agrega una nueva orden.</div>';
+  }
+  function renderClients(){
+    const query=$('clientSearch').value.trim().toLowerCase(),map=new Map();[...data.orders].sort((a,b)=>b.callTime-a.callTime).forEach(o=>{const key=normalizePhone(o.phone)||o.name.toLowerCase();if(!map.has(key))map.set(key,{name:o.name,phone:o.phone,address:o.address,count:0,bottles:0,last:o.callTime});const c=map.get(key);c.count++;c.bottles+=Number(o.quantity)||0;c.last=Math.max(c.last,o.callTime)});const clients=[...map.values()].filter(c=>!query||`${c.name} ${c.phone}`.toLowerCase().includes(query));
+    $('clientList').innerHTML=clients.length?clients.map(c=>`<article class="client-card"><div class="client-head"><div class="avatar">${escapeHTML(c.name.charAt(0).toUpperCase())}</div><div><strong>${escapeHTML(c.name)}</strong><span>${escapeHTML(c.phone)}</span></div></div><p style="font-size:12px;color:var(--muted)">${escapeHTML(c.address)}</p><div class="client-meta"><span>${c.count} pedido${c.count===1?'':'s'}</span><span>${c.bottles} garrafones</span><span>${formatDateTime(c.last)}</span></div></article>`).join(''):'<div class="card empty"><div class="empty-symbol">◎</div><strong>Todavía no hay clientes</strong>Los clientes aparecerán al guardar órdenes.</div>';
+  }
+  function renderHistory(){const list=salesFor(historyRange,$('historyFrom').value,$('historyTo').value),sales=[...list].sort((a,b)=>b.time-a.time),revenue=sum(list,'price',data.settings.salePrice),profit=sum(list,'profit',data.settings.profitPerSale);$('histUnits').textContent=list.length;$('histRevenue').textContent=money(revenue);$('histProfit').textContent=money(profit);$('histAverage').textContent=money(list.length?revenue/list.length:0);$('historyList').innerHTML=sales.length?sales.map((s,i)=>`<div class="history-item"><div class="history-num">${sales.length-i}</div><div class="history-info"><strong>Garrafón vendido · ${money(s.price??data.settings.salePrice)}</strong><span>${formatDateTime(s.time)} · Ganancia ${money(s.profit??data.settings.profitPerSale)}</span></div><button class="delete-mini" data-delete-sale="${s.id}" aria-label="Eliminar venta">Eliminar</button></div>`).join(''):'<div class="empty"><strong>No hay ventas registradas</strong>Selecciona otro período o usa el botón de venta rápida.</div>'}
+  function renderReports(){const list=salesFor(reportRange,$('reportFrom').value,$('reportTo').value),revenue=sum(list,'price',data.settings.salePrice),profit=sum(list,'profit',data.settings.profitPerSale);$('repUnits').textContent=list.length;$('repRevenue').textContent=money(revenue);$('repProfit').textContent=money(profit);$('repMargin').textContent=(revenue?profit/revenue*100:0).toFixed(1)+'%';const groups={};list.forEach(s=>{const date=new Date(s.time),monthly=['year','all'].includes(reportRange),key=monthly?`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`:dateOnly(s.time),label=monthly?new Intl.DateTimeFormat('es-GT',{month:'short'}).format(date):new Intl.DateTimeFormat('es-GT',{day:'2-digit',month:'short'}).format(date);groups[key]??={label,count:0};groups[key].count++});const points=Object.values(groups).slice(-12),max=Math.max(1,...points.map(p=>p.count));$('salesChart').innerHTML=points.length?points.map(p=>`<div class="bar-wrap"><div class="bar-value">${p.count}</div><div class="bar" style="height:${Math.max(4,p.count/max*150)}px"></div><div class="bar-label">${p.label}</div></div>`).join(''):'<div class="empty" style="width:100%"><strong>Sin datos para graficar</strong>Registra ventas o selecciona otro período.</div>'}
+  function renderInventory(){$('fullStock').textContent=data.settings.fullStock;$('emptyStock').textContent=data.settings.emptyStock;$('inventorySales').textContent=data.sales.length;$('minStockDisplay').textContent=data.settings.minStock}
+  function renderCash(){const today=salesFor('day'),todayKey=todayISO(),expenses=data.expenses.filter(x=>x.date===todayKey),revenue=sum(today,'price',data.settings.salePrice),gross=sum(today,'profit',data.settings.profitPerSale),expenseTotal=sum(expenses,'amount');$('cashRevenue').textContent=money(revenue);$('cashGross').textContent=money(gross);$('cashExpenses').textContent=money(expenseTotal);$('cashNet').textContent=money(gross-expenseTotal);$('cashNet').className=gross-expenseTotal<0?'cash-negative':'cash-positive';$('expenseList').innerHTML=expenses.length?expenses.sort((a,b)=>b.time-a.time).map(x=>`<div class="history-item"><div class="history-num">Q</div><div class="history-info"><strong>${escapeHTML(x.description)}</strong><span>${formatDateTime(x.time)}</span></div><strong class="cash-negative">-${money(x.amount)}</strong><button class="delete-mini" data-delete-expense="${x.id}">Eliminar</button></div>`).join(''):'<div class="empty"><strong>No hay gastos registrados hoy</strong>La ganancia neta coincide con la ganancia bruta.</div>'}
+  function fillSettings(){$('businessName').value=data.settings.businessName;$('salePrice').value=data.settings.salePrice;$('profitPerSale').value=data.settings.profitPerSale;$('settingFull').value=data.settings.fullStock;$('settingEmpty').value=data.settings.emptyStock;$('minStock').value=data.settings.minStock;$('autoInventory').value=data.settings.autoInventory?'yes':'no';$('operatingStatus').value=data.settings.operatingStatus;$('deliveryEnabled').value=data.settings.deliveryEnabled?'yes':'no';$('serviceArea').value=data.settings.serviceArea;$('businessHours').value=data.settings.businessHours;$('statusMessage').value=data.settings.statusMessage}
+  function filterStatus(filter){const uses=Math.max(0,data.sales.length-Number(filter.baseSales||0)),start=new Date(filter.startDate+'T00:00:00'),days=Math.max(0,Math.floor((localDayStart()-start)/86400000)),pct=Math.max(uses/filter.maxUses*100,days/filter.maxDays*100);let level='ok',text='En buen estado';if(pct>=100){level='danger';text='Cambiar ahora'}else if(pct>=80){level='warn';text='Próximo a cambio'}return{uses,days,pct:Math.min(100,pct),level,text}}
+  function renderFilters(){if(!data.filters.length){$('filterList').innerHTML='<div class="card empty"><strong>No hay filtros configurados</strong>Agrega el primer filtro para comenzar a medir su uso.</div>';return}$('filterList').innerHTML=data.filters.map(f=>{const st=filterStatus(f);return`<div class="filter-card"><div class="filter-top"><div class="filter-icon">▽</div><div class="filter-info"><h4>${escapeHTML(f.name)}</h4><p>Instalado: ${new Intl.DateTimeFormat('es-GT',{dateStyle:'medium'}).format(new Date(f.startDate+'T00:00:00'))}</p></div><span class="badge ${st.level}">${st.text}</span></div><div class="progress"><div style="width:${st.pct}%"></div></div><div class="filter-meta"><span>${st.uses} / ${f.maxUses} usos</span><span>${st.days} / ${f.maxDays} días</span></div><div class="filter-actions"><button class="btn soft" data-edit-filter="${f.id}">Editar</button><button class="btn" data-reset-filter="${f.id}">Marcar cambiado</button><button class="btn danger" data-delete-filter="${f.id}">Eliminar</button></div></div>`}).join('')}
+  function registerSale(){const inventoryAdjusted=Boolean(data.settings.autoInventory);data.sales.push({id:cryptoId(),time:Date.now(),price:Number(data.settings.salePrice)||0,profit:Number(data.settings.profitPerSale)||0,inventoryAdjusted});if(inventoryAdjusted){data.settings.fullStock=Math.max(0,data.settings.fullStock-1);data.settings.emptyStock++}saveData();render();if(navigator.vibrate)navigator.vibrate(40);showToast(`Venta registrada: ${money(data.settings.salePrice)}`);checkBusinessAlerts()}
+  function removeSale(id,message='Registro eliminado'){const sale=data.sales.find(s=>s.id===id);if(!sale)return;if(sale.inventoryAdjusted){data.settings.fullStock++;data.settings.emptyStock=Math.max(0,data.settings.emptyStock-1)}data.sales=data.sales.filter(s=>s.id!==id);saveData();render();showToast(message)}
+  function undoSale(){if(!data.sales.length){showToast('No hay ventas para deshacer');return}const latest=[...data.sales].sort((a,b)=>b.time-a.time)[0];removeSale(latest.id,'Última venta eliminada')}
+  function checkBusinessAlerts(){data.filters.forEach(f=>{const st=filterStatus(f);if(st.level==='danger')notify('Cambio de filtro requerido',`${f.name}: llegó a su límite de uso o tiempo.`);else if(st.level==='warn'&&(st.uses===Math.ceil(f.maxUses*.8)||st.days===Math.ceil(f.maxDays*.8)))notify('Filtro próximo a cambio',`${f.name}: alcanzó aproximadamente el 80% de su vida útil.`)});if(data.settings.fullStock<=data.settings.minStock)notify('Inventario bajo',`Solo quedan ${data.settings.fullStock} garrafones llenos.`)}
+  function navigate(page){currentPage=page;document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+page));document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));$('pageTitle').textContent=({home:'Panel principal',orders:'Órdenes',clients:'Clientes',assistant:'Contestadora IA',plans:'Planes y licencia',history:'Historial de ventas',reports:'Reportes',filters:'Control de filtros',inventory:'Inventario',cash:'Caja del día',settings:'Configuración',more:'Más opciones'})[page];closeSidebar();window.scrollTo({top:0,behavior:'smooth'})}
+  function openSidebar(){sidebar.classList.remove('hidden');if(window.innerWidth<760)overlay.classList.add('show');else document.body.classList.remove('sidebar-collapsed')}
+  function closeSidebar(){sidebar.classList.add('hidden');overlay.classList.remove('show');if(window.innerWidth>=760)document.body.classList.add('sidebar-collapsed')}
+  function applyTheme(theme){document.body.classList.toggle('dark',theme==='dark');localStorage.setItem(THEME_KEY,theme);updateThemeButtons()}
+  function updateThemeButtons(){const dark=document.body.classList.contains('dark'),label=dark?'Modo claro':'Modo oscuro';$('themeBtn').querySelector('strong').textContent=label;$('quickThemeBtn').textContent=dark?'☀':'◐';$('sidebarThemeBtn').textContent=`${dark?'☀':'◐'} ${label}`}
+  const toggleTheme=()=>applyTheme(document.body.classList.contains('dark')?'light':'dark');
+  function openOrderModal(order=null){$('orderModalTitle').textContent=order?'Editar orden':'Nueva orden';$('orderId').value=order?.id||'';$('orderName').value=order?.name||'';$('orderPhone').value=order?.phone||'';$('orderQuantity').value=order?.quantity||1;$('orderAddress').value=order?.address||'';$('orderCallTime').value=toLocalInput(order?.callTime||Date.now());$('orderDeliveryDate').value=order?.deliveryDate||todayISO();$('orderDeliveryTime').value=order?.deliveryTime||'';$('orderStatus').value=order?.status||'Por confirmar';$('orderSource').value=order?.source||'manual';$('orderModal').classList.add('show')}
+  function openFilterModal(filter=null){$('filterModalTitle').textContent=filter?'Editar filtro':'Agregar filtro';$('filterId').value=filter?.id||'';$('filterName').value=filter?.name||'';$('filterMaxUses').value=filter?.maxUses||1000;$('filterMaxDays').value=filter?.maxDays||90;$('filterStartDate').value=filter?.startDate||todayISO();$('filterModal').classList.add('show')}
+  function closeModal(id){$(id).classList.remove('show')}
+  function saveIncomingOrder(raw,source='assistant',announce=true){const order={id:raw.id||cryptoId(),externalId:String(raw.externalId||raw.external_id||''),name:String(raw.name||raw.customerName||'Cliente').trim(),phone:String(raw.phone||raw.whatsapp||'').trim(),quantity:Math.max(1,Number(raw.quantity)||1),address:String(raw.address||'Dirección por confirmar').trim(),callTime:raw.callTime?new Date(raw.callTime).getTime():Date.now(),deliveryDate:raw.deliveryDate||'',deliveryTime:raw.deliveryTime||'',requestedTime:String(raw.requestedTime||raw.requested_time||''),status:raw.status||'Por confirmar',source};data.orders.unshift(order);saveData();if(announce){render();notify('Nueva orden',`${order.name}: ${order.quantity} ${bottleNoun(order.quantity)}.`)}return order}
+  window.AquaControl={receiveOrder:order=>saveIncomingOrder(order,'assistant')};
+  window.addEventListener('aquacontrol:order',event=>saveIncomingOrder(event.detail||{},'assistant'));
+  async function requestNotifications(){if(!('Notification'in window)){showToast('Este navegador no admite notificaciones');return}const result=await Notification.requestPermission();showToast(result==='granted'?'Notificaciones activadas':'Permiso no concedido')}
+  function exportBackup(){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`aquacontrol-respaldo-${todayISO()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),500);showToast('Respaldo exportado')}
+
+  $('saleBtn').addEventListener('click',registerSale);$('undoBtn').addEventListener('click',undoSale);$('menuBtn').addEventListener('click',()=>sidebar.classList.contains('hidden')?openSidebar():closeSidebar());overlay.addEventListener('click',closeSidebar);$('quickThemeBtn').addEventListener('click',toggleTheme);$('themeBtn').addEventListener('click',toggleTheme);$('sidebarThemeBtn').addEventListener('click',toggleTheme);
+  document.querySelectorAll('[data-page]').forEach(btn=>btn.addEventListener('click',()=>navigate(btn.dataset.page)));$('orderSearch').addEventListener('input',renderOrders);$('clientSearch').addEventListener('input',renderClients);$('homeNewOrderBtn').addEventListener('click',()=>openOrderModal());$('addOrderBtn').addEventListener('click',()=>openOrderModal());$('addFilterBtn').addEventListener('click',()=>openFilterModal());
+  $('historyTabs').addEventListener('click',e=>{const btn=e.target.closest('[data-history-range]');if(!btn)return;historyRange=btn.dataset.historyRange;document.querySelectorAll('#historyTabs .range-btn').forEach(item=>item.classList.toggle('active',item===btn));$('historyCustom').style.display=historyRange==='custom'?'grid':'none';renderHistory()});$('historyFrom').addEventListener('change',renderHistory);$('historyTo').addEventListener('change',renderHistory);
+  $('reportTabs').addEventListener('click',e=>{const btn=e.target.closest('[data-report-range]');if(!btn)return;reportRange=btn.dataset.reportRange;document.querySelectorAll('#reportTabs .range-btn').forEach(item=>item.classList.toggle('active',item===btn));$('reportCustom').style.display=reportRange==='custom'?'grid':'none';renderReports()});$('reportFrom').addEventListener('change',renderReports);$('reportTo').addEventListener('change',renderReports);
+  document.querySelectorAll('[data-close-modal]').forEach(btn=>btn.addEventListener('click',()=>closeModal(btn.dataset.closeModal)));document.querySelectorAll('.modal').forEach(modal=>modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('show')}));
+  function orderListClick(e){const edit=e.target.closest('[data-edit-order]')?.dataset.editOrder,whatsapp=e.target.closest('[data-whatsapp-order]')?.dataset.whatsappOrder;if(edit)openOrderModal(data.orders.find(o=>o.id===edit));if(whatsapp)openWhatsApp(data.orders.find(o=>o.id===whatsapp))}
+  $('recentOrderList').addEventListener('click',orderListClick);$('orderList').addEventListener('click',orderListClick);
+  function orderStatusChange(e){const id=e.target.closest('[data-order-status]')?.dataset.orderStatus;if(!id)return;const order=data.orders.find(o=>o.id===id);order.status=e.target.value;saveData();render();showToast(`Estado cambiado a “${order.status}”`);if(['Confirmada','En ruta'].includes(order.status))openWhatsApp(order)}
+  $('recentOrderList').addEventListener('change',orderStatusChange);$('orderList').addEventListener('change',orderStatusChange);
+  $('orderForm').addEventListener('submit',e=>{e.preventDefault();const id=$('orderId').value,existing=data.orders.find(o=>o.id===id),item={id:id||cryptoId(),name:$('orderName').value.trim(),phone:$('orderPhone').value.trim(),quantity:Math.max(1,Number($('orderQuantity').value)),address:$('orderAddress').value.trim(),callTime:new Date($('orderCallTime').value).getTime(),deliveryDate:$('orderDeliveryDate').value,deliveryTime:$('orderDeliveryTime').value,status:$('orderStatus').value,source:$('orderSource').value};if(existing)Object.assign(existing,item);else data.orders.push(item);saveData();render();closeModal('orderModal');showToast('Orden guardada')});
+  $('historyList').addEventListener('click',e=>{const id=e.target.closest('[data-delete-sale]')?.dataset.deleteSale;if(id&&confirm('¿Eliminar esta venta?'))removeSale(id)});
+  $('filterList').addEventListener('click',e=>{const editId=e.target.closest('[data-edit-filter]')?.dataset.editFilter,resetId=e.target.closest('[data-reset-filter]')?.dataset.resetFilter,deleteId=e.target.closest('[data-delete-filter]')?.dataset.deleteFilter;if(editId)openFilterModal(data.filters.find(f=>f.id===editId));if(resetId){const f=data.filters.find(f=>f.id===resetId);if(f&&confirm(`¿Confirmas que cambiaste "${f.name}"?`)){f.startDate=todayISO();f.baseSales=data.sales.length;saveData();render();showToast('Filtro reiniciado')}}if(deleteId&&confirm('¿Eliminar este filtro?')){data.filters=data.filters.filter(f=>f.id!==deleteId);saveData();render();showToast('Filtro eliminado')}});
+  $('filterForm').addEventListener('submit',e=>{e.preventDefault();const id=$('filterId').value,existing=data.filters.find(f=>f.id===id),item={id:id||cryptoId(),name:$('filterName').value.trim(),maxUses:Number($('filterMaxUses').value),maxDays:Number($('filterMaxDays').value),startDate:$('filterStartDate').value,baseSales:existing?.baseSales??data.sales.length};if(existing)Object.assign(existing,item);else data.filters.push(item);saveData();render();closeModal('filterModal');showToast('Filtro guardado')});
+  $('clearHistoryBtn').addEventListener('click',()=>{if(confirm('¿Eliminar todo el historial de ventas? Esta acción no se puede deshacer.')){const adjusted=data.sales.filter(s=>s.inventoryAdjusted).length;data.settings.fullStock+=adjusted;data.settings.emptyStock=Math.max(0,data.settings.emptyStock-adjusted);data.sales=[];data.filters.forEach(f=>f.baseSales=0);saveData();render();showToast('Historial eliminado')}});
+  document.querySelectorAll('[data-stock]').forEach(btn=>btn.addEventListener('click',()=>{const key=btn.dataset.stock==='full'?'fullStock':'emptyStock';data.settings[key]=Math.max(0,Number(data.settings[key])+Number(btn.dataset.delta));saveData();render();checkBusinessAlerts()}));
+  $('settingsForm').addEventListener('submit',e=>{e.preventDefault();data.settings={...data.settings,businessName:$('businessName').value.trim()||'AquaControl',salePrice:Math.max(0,Number($('salePrice').value)||0),profitPerSale:Math.max(0,Number($('profitPerSale').value)||0),fullStock:Math.max(0,Number($('settingFull').value)||0),emptyStock:Math.max(0,Number($('settingEmpty').value)||0),minStock:Math.max(0,Number($('minStock').value)||0),autoInventory:$('autoInventory').value==='yes',operatingStatus:$('operatingStatus').value,deliveryEnabled:$('deliveryEnabled').value==='yes',serviceArea:$('serviceArea').value.trim(),businessHours:$('businessHours').value.trim(),statusMessage:$('statusMessage').value.trim()};saveData();render();showToast('Configuración guardada');checkBusinessAlerts();refreshLicense(true)});
+  $('addExpenseBtn').addEventListener('click',()=>{$('expenseDescription').value='';$('expenseAmount').value='';$('expenseModal').classList.add('show')});$('expenseForm').addEventListener('submit',e=>{e.preventDefault();data.expenses.push({id:cryptoId(),description:$('expenseDescription').value.trim(),amount:Math.max(.01,Number($('expenseAmount').value)||0),date:todayISO(),time:Date.now()});saveData();render();closeModal('expenseModal');showToast('Gasto registrado')});$('expenseList').addEventListener('click',e=>{const id=e.target.closest('[data-delete-expense]')?.dataset.deleteExpense;if(id&&confirm('¿Eliminar este gasto?')){data.expenses=data.expenses.filter(x=>x.id!==id);saveData();render();showToast('Gasto eliminado')}});
+  $('notificationBtn').addEventListener('click',requestNotifications);$('sidebarNotificationBtn').addEventListener('click',requestNotifications);
+  $('exportBtn').addEventListener('click',exportBackup);$('sidebarExportBtn').addEventListener('click',exportBackup);
+  $('importBtn').addEventListener('click',()=>$('importFile').click());$('sidebarImportBtn').addEventListener('click',()=>$('importFile').click());$('importFile').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{const parsed=JSON.parse(await file.text());if(!Array.isArray(parsed.sales)||!Array.isArray(parsed.filters))throw new Error();data=normalizeData(parsed,null);saveData();render();showToast('Respaldo importado')}catch(_err){alert('El archivo no es un respaldo válido de AquaControl.')}e.target.value=''});
+  $('quickOperatingStatus').addEventListener('change',e=>{data.settings.operatingStatus=e.target.value;saveData();render();showToast('Estado de la empresa actualizado')});
+  $('refreshLicenseBtn').addEventListener('click',()=>refreshLicense());
+  const monthStart=new Date(new Date().getFullYear(),new Date().getMonth(),1);monthStart.setMinutes(monthStart.getMinutes()-monthStart.getTimezoneOffset());$('historyFrom').value=$('reportFrom').value=monthStart.toISOString().slice(0,10);$('historyTo').value=$('reportTo').value=todayISO();$('currentDate').textContent=new Intl.DateTimeFormat('es-GT',{weekday:'long',day:'numeric',month:'long'}).format(new Date());applyTheme(localStorage.getItem(THEME_KEY)||'light');if(window.innerWidth>=760)openSidebar();render();refreshLicense(true);setInterval(()=>refreshLicense(true),60000);
+  if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js').catch(()=>{}));
 })();
 </script>
 </body>
