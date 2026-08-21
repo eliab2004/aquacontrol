@@ -1,8 +1,9 @@
 // Incrementar este nombre publica una nueva versión del contenido sin borrar datos locales.
-const CACHE_NAME = 'aquacontrol-cache-v5';
+const CACHE_NAME = 'aquacontrol-cache-v6';
 const APP_SHELL = [
   './index.html',
   './manifest.json',
+  './version.json',
   './icon-192.png',
   './icon-512.png'
 ];
@@ -20,6 +21,7 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
   event.respondWith(
     fetch(event.request)
       .then(response => {

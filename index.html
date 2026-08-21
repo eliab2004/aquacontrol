@@ -57,6 +57,7 @@
     .chart{height:210px;display:flex;align-items:flex-end;gap:7px;padding:18px 2px 0;overflow-x:auto}.bar-wrap{flex:1;min-width:35px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px}.bar{width:72%;min-height:4px;background:linear-gradient(180deg,var(--primary),var(--primary-dark));border-radius:8px 8px 3px 3px}.bar-label{font-size:9px;color:var(--muted);white-space:nowrap}.bar-value{font-size:9px;font-weight:850}.inventory-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.inventory-card{text-align:center}.inventory-card .inventory-icon{font-size:26px}.inventory-card strong{display:block;font-size:30px;margin:4px 0}.inventory-card span{font-size:11px;color:var(--muted)}.stock-controls{display:flex;justify-content:center;gap:8px;margin-top:11px}.stock-controls button{width:39px;height:39px;border:0;border-radius:12px;background:var(--primary-soft);color:var(--primary-dark);font-size:18px;font-weight:900}.cash-positive{color:var(--success)!important}.cash-negative{color:var(--danger)!important}.help-text{color:var(--muted);font-size:11px;line-height:1.55;margin:9px 0 0}
     .toast{position:fixed;z-index:100;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,28px);opacity:0;pointer-events:none;background:#102033;color:#fff;border-radius:13px;padding:11px 15px;font-weight:800;font-size:12px;box-shadow:0 12px 30px rgba(0,0,0,.25);transition:.22s;max-width:88%;text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}
     .modal{position:fixed;inset:0;z-index:90;background:rgba(2,6,23,.58);display:none;align-items:flex-end;justify-content:center;padding:12px}.modal.show{display:flex}.modal-box{width:min(100%,560px);background:var(--surface);border-radius:22px 22px 16px 16px;padding:18px;max-height:92vh;overflow:auto}.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.modal-head h3{margin:0}.close-btn{border:0;background:var(--surface-2);color:var(--text);width:37px;height:37px;border-radius:11px}
+    .update-box{text-align:center;padding:24px}.update-icon{width:58px;height:58px;margin:0 auto 14px;border-radius:18px;display:grid;place-items:center;background:var(--primary-soft);color:var(--primary-dark);font-size:29px;font-weight:950}.update-box h3{margin:0 0 7px;font-size:22px}.update-box p{margin:0;color:var(--muted);font-size:12px;line-height:1.55}.update-version{display:inline-flex;margin:15px 0;padding:7px 11px;border-radius:999px;background:var(--success-soft);color:var(--success);font-size:11px;font-weight:900}.update-actions{display:grid;gap:8px;margin-top:17px}.update-link{text-decoration:none;text-align:center}.update-note{display:block;margin-top:12px;color:var(--muted);font-size:10px;line-height:1.45}
     .bottom-nav{position:fixed;z-index:40;left:0;right:0;bottom:0;padding:6px 7px calc(5px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(5,1fr);background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(16px);border-top:1px solid var(--border)}.bottom-btn{border:0;background:transparent;color:var(--muted);border-radius:11px;padding:6px 2px;font-size:9px;font-weight:800;min-width:0}.bottom-btn .bottom-icon{display:block;font-size:19px;line-height:1.1;margin-bottom:2px}.bottom-btn.active{color:var(--primary-dark);background:var(--primary-soft)}
     @media(min-width:760px){.main{padding-left:calc(var(--sidebar-w) + 24px);padding-right:24px;padding-bottom:28px;transition:padding-left .25s}.sidebar{transform:none}.sidebar.hidden{transform:translateX(-100%)}body.sidebar-collapsed .main{padding-left:24px}.overlay,.bottom-nav{display:none}.modal{align-items:center}.modal-box{border-radius:20px}.quick-sale{padding:20px 22px}.stats{gap:12px}.order-list{grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}.summary-grid{grid-template-columns:repeat(4,1fr)}.inventory-grid{grid-template-columns:repeat(4,1fr)}}
     @media(max-width:420px){.form-grid.two{grid-template-columns:1fr}.status-select{max-width:125px}.order-actions{align-items:flex-end}.section-head h3{font-size:18px}.btn{padding:9px 10px;font-size:12px}}
@@ -270,11 +271,26 @@
     </div>
   </div>
 
+  <div class="modal" id="updateModal" role="dialog" aria-modal="true" aria-labelledby="updateTitle">
+    <div class="modal-box update-box">
+      <div class="update-icon" aria-hidden="true">↻</div>
+      <h3 id="updateTitle">Nueva versión disponible</h3>
+      <p id="updateMessage">AquaControl tiene mejoras listas para instalar.</p>
+      <span class="update-version" id="updateVersion">Versión nueva</span>
+      <div class="update-actions">
+        <a class="btn full update-link" id="updateNowBtn" href="https://eliab2004.github.io/aquacontrol/">Actualizar ahora</a>
+        <button class="btn soft full" id="updateLaterBtn" type="button">Más tarde</button>
+      </div>
+      <small class="update-note" id="updateNote">Tus datos guardados en este dispositivo no se borran al actualizar desde el mismo enlace.</small>
+    </div>
+  </div>
+
 <script>
 (() => {
   'use strict';
   const STORAGE_KEY='aquacontrol_data_v1',LEGACY_KEY='aquacontrol_v3',THEME_KEY='aquacontrol_theme',INSTALL_KEY='aquacontrol_installation_id',DEVICE_TOKEN_KEY='aquacontrol_control_hub_token',LICENSE_CACHE_KEY='aquacontrol_license_cache_v2';
-  const CONTROL_HUB_ENDPOINT='https://control-hub-felix.fhernandeza12.chatgpt.site/api/installations/heartbeat',APP_VERSION='2.1.0';
+  const CONTROL_HUB_ENDPOINT='https://control-hub-felix.fhernandeza12.chatgpt.site/api/installations/heartbeat',APP_VERSION='2.1.1';
+  const OFFICIAL_APP_URL='https://eliab2004.github.io/aquacontrol/',LATEST_VERSION_URL=OFFICIAL_APP_URL+'version.json';
   const $=id=>document.getElementById(id);
   const todayISO=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
   const toLocalInput=value=>{const d=new Date(value);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)};
@@ -327,6 +343,20 @@
   function salesFor(range,from,to){const [start,end]=periodBounds(range,from,to);return data.sales.filter(s=>new Date(s.time)>=start&&new Date(s.time)<=end)}
   const bottleNoun=quantity=>Number(quantity)===1?'garrafón':'garrafones';
   function showToast(message){toast.textContent=message;toast.classList.add('show');clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>toast.classList.remove('show'),2400)}
+  function compareVersions(a,b){const left=String(a).split('.').map(Number),right=String(b).split('.').map(Number);for(let i=0;i<Math.max(left.length,right.length);i++){const difference=(left[i]||0)-(right[i]||0);if(difference)return difference}return 0}
+  function isOfficialLink(){return location.origin==='https://eliab2004.github.io'&&location.pathname.toLowerCase().startsWith('/aquacontrol/')}
+  async function checkForUpdates(){
+    try{
+      const response=await fetch(`${LATEST_VERSION_URL}?t=${Date.now()}`,{cache:'no-store'});if(!response.ok)return;
+      const latest=await response.json(),hasNewVersion=compareVersions(latest.version,APP_VERSION)>0,isLegacyLink=location.protocol.startsWith('http')&&!isOfficialLink();
+      if(!hasNewVersion&&!isLegacyLink)return;
+      $('updateTitle').textContent=hasNewVersion?'Nueva versión disponible':'Usa el enlace oficial de AquaControl';
+      $('updateMessage').textContent=hasNewVersion?(latest.message||'AquaControl tiene mejoras listas para instalar.'):'Este enlace seguirá funcionando, pero todas las actualizaciones se publicarán en un único enlace oficial.';
+      $('updateVersion').textContent=`Versión ${latest.version}`;$('updateNowBtn').href=latest.url||OFFICIAL_APP_URL;
+      $('updateNote').textContent=isLegacyLink?'Si tienes información guardada aquí, exporta un respaldo antes de cambiar de enlace y luego impórtalo en la versión oficial.':'Tus datos guardados en este dispositivo no se borran al actualizar.';
+      $('updateModal').classList.add('show');
+    }catch(_e){}
+  }
   function notify(title,body){showToast(body);if('Notification'in window&&Notification.permission==='granted'){try{new Notification(title,{body,icon:'icon-192.png'})}catch(_e){}}}
   function statusClass(status){return({'Por confirmar':'pending','Confirmada':'confirmed','En ruta':'route','Entregada':'delivered','Cancelada':'cancelled'})[status]||''}
   function deliveryLabel(order){if(!order.deliveryDate&&!order.deliveryTime)return`Entrega: ${order.requestedTime||'lo antes posible'}`;const date=order.deliveryDate?new Intl.DateTimeFormat('es-GT',{day:'numeric',month:'short'}).format(new Date(order.deliveryDate+'T12:00:00')):'Fecha pendiente';const time=order.deliveryTime?new Intl.DateTimeFormat('es-GT',{hour:'numeric',minute:'2-digit'}).format(new Date('2000-01-01T'+order.deliveryTime)):'';return`Entrega: ${date}${time?', '+time:''}`}
@@ -406,9 +436,10 @@
   $('exportBtn').addEventListener('click',exportBackup);$('sidebarExportBtn').addEventListener('click',exportBackup);
   $('importBtn').addEventListener('click',()=>$('importFile').click());$('sidebarImportBtn').addEventListener('click',()=>$('importFile').click());$('importFile').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{const parsed=JSON.parse(await file.text());if(!Array.isArray(parsed.sales)||!Array.isArray(parsed.filters))throw new Error();data=normalizeData(parsed,null);saveData();render();showToast('Respaldo importado')}catch(_err){alert('El archivo no es un respaldo válido de AquaControl.')}e.target.value=''});
   $('quickOperatingStatus').addEventListener('change',e=>{data.settings.operatingStatus=e.target.value;saveData();render();showToast('Estado de la empresa actualizado')});
+  $('updateLaterBtn').addEventListener('click',()=>closeModal('updateModal'));
   $('refreshLicenseBtn').addEventListener('click',()=>refreshLicense());
-  const monthStart=new Date(new Date().getFullYear(),new Date().getMonth(),1);monthStart.setMinutes(monthStart.getMinutes()-monthStart.getTimezoneOffset());$('historyFrom').value=$('reportFrom').value=monthStart.toISOString().slice(0,10);$('historyTo').value=$('reportTo').value=todayISO();$('currentDate').textContent=new Intl.DateTimeFormat('es-GT',{weekday:'long',day:'numeric',month:'long'}).format(new Date());applyTheme(localStorage.getItem(THEME_KEY)||'light');if(window.innerWidth>=760)openSidebar();render();refreshLicense(true);setInterval(()=>refreshLicense(true),60000);
-  if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js').catch(()=>{}));
+  const monthStart=new Date(new Date().getFullYear(),new Date().getMonth(),1);monthStart.setMinutes(monthStart.getMinutes()-monthStart.getTimezoneOffset());$('historyFrom').value=$('reportFrom').value=monthStart.toISOString().slice(0,10);$('historyTo').value=$('reportTo').value=todayISO();$('currentDate').textContent=new Intl.DateTimeFormat('es-GT',{weekday:'long',day:'numeric',month:'long'}).format(new Date());applyTheme(localStorage.getItem(THEME_KEY)||'light');if(window.innerWidth>=760)openSidebar();render();refreshLicense(true);setInterval(()=>refreshLicense(true),60000);setTimeout(checkForUpdates,1800);setInterval(checkForUpdates,5*60*1000);addEventListener('online',checkForUpdates);addEventListener('focus',checkForUpdates);
+  if('serviceWorker'in navigator)window.addEventListener('load',async()=>{try{const registration=await navigator.serviceWorker.register('service-worker.js');registration.update();setInterval(()=>registration.update(),60*60*1000);let reloading=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloading)return;reloading=true;location.reload()})}catch(_e){}});
 })();
 </script>
 </body>
