@@ -1,5 +1,5 @@
 {
-  "version": "2.1.1",
+  "version": "2.2.0",
   "url": "https://eliab2004.github.io/aquacontrol/",
-  "message": "Hay una actualización de AquaControl con un enlace único y avisos automáticos de nuevas versiones."
+  "message": "Nueva conexión con Control Hub: la contestadora puede enviar pedidos confirmados directamente a Purificadora Krystal."
 }
